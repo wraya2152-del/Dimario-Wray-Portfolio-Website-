@@ -28,9 +28,20 @@ Open `index.html` in any text editor and search for the words you want to change
 
 Easy things to change:
 - **Your name:** search for `Dimario` and `Wray`.
-- **Contact email:** search for `mailto:`.
+- **Contact email:** search for `window.CONTACT` (and `mailto:` for the link under the form).
 - **Project cards:** search for `class="card panel"`. Each card is one project.
 - **Colors:** at the top of the file, find `--cyan`, `--violet` and `--mint`.
+
+## Set up the contact form
+
+The contact section has a message form and a "Copy email" button.
+
+- **Out of the box**, the form opens the visitor's email app with their message filled in. That works with no setup.
+- **To receive messages straight to your inbox**, use a free form service such as [Formspree](https://formspree.io):
+  1. Create a free account and make a new form. Use your email as the destination.
+  2. Copy the form link it gives you (it looks like `https://formspree.io/f/xxxxxxx`).
+  3. In `index.html`, search for `window.CONTACT` and paste the link between the quotes after `endpoint:`.
+  4. Upload the change. Visitors now see "Message sent" and the message arrives in your inbox.
 
 ## Put it online for free
 
@@ -59,7 +70,10 @@ You get a live link within a minute or two.
 
 **3. Use your own domain (optional)**
 
-Buy a domain from any registrar, add it in your host's dashboard, then copy the DNS records the dashboard shows into your registrar's DNS settings. HTTPS turns on automatically after a short wait.
+1. Buy a domain from any registrar (Namecheap, Porkbun, Cloudflare and others).
+2. In your host's dashboard (on Vercel: Project, then Settings, then Domains) add the domain.
+3. The dashboard shows the DNS records to create, usually one for the main domain and one for `www`. Copy them exactly into your registrar's DNS settings.
+4. Wait a few minutes to a few hours. HTTPS turns on automatically.
 
 ## Credits and licenses
 

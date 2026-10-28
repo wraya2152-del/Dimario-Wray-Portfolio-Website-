@@ -171,6 +171,23 @@
   .contact { text-align: left; align-items: flex-start; min-height: 100vh; }
   .btn { display: inline-flex; align-items: center; gap: 12px; margin-top: 34px; padding: 18px 30px; border: 1px solid var(--cyan); border-radius: 999px; font-family: var(--mono); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--text); background: rgba(53,224,255,.08); transition: all .3s; }
   .btn:hover { background: var(--cyan); color: #00131a; box-shadow: 0 0 36px rgba(53,224,255,.6); transform: translateY(-3px); }
+  /* contact form */
+  .cform { width: min(540px, 100%); margin-top: 30px; padding: 26px; display: grid; gap: 16px; text-align: left; }
+  .cform label { display: grid; gap: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--cyan); }
+  .cform input, .cform textarea { width: 100%; background: rgba(2,10,22,.72); border: 1px solid var(--line); border-radius: 10px; padding: 13px 14px; color: var(--text); font-family: var(--display); font-size: 1rem; letter-spacing: 0; text-transform: none; transition: border-color .25s, box-shadow .25s; }
+  .cform input::placeholder, .cform textarea::placeholder { color: #5f8294; }
+  .cform input:focus, .cform textarea:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(53,224,255,.16), 0 0 22px rgba(53,224,255,.2); }
+  .cform textarea { min-height: 130px; resize: vertical; }
+  .cform .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  .cform .btn { justify-self: start; margin-top: 4px; cursor: pointer; }
+  .cform .btn:disabled { opacity: .6; cursor: wait; transform: none; }
+  .cstatus { min-height: 1.4em; font-family: var(--mono); font-size: 12px; letter-spacing: .06em; color: var(--mint); line-height: 1.5; }
+  .cstatus.err { color: #ff9a9a; }
+  .direct { margin-top: 22px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: var(--muted); }
+  .direct a { color: var(--text); border-bottom: 1px solid var(--cyan); padding-bottom: 2px; }
+  .copy { background: none; border: 1px solid var(--line); color: var(--cyan); border-radius: 999px; padding: 7px 14px; font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: all .25s; }
+  .copy:hover { border-color: var(--cyan); background: rgba(53,224,255,.1); }
+
   footer { position: relative; z-index: 5; text-align: center; padding: 20px 20px calc(env(safe-area-inset-bottom, 0px) + 28px); font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
 
   @media (max-width: 760px) {
@@ -312,7 +329,15 @@
     <div class="mono">// 05 — Contact</div>
     <h2 data-split>Got a friction worth <em>fixing</em>?</h2>
     <p class="lead drift" style="--k:.5">Tell me what slows your office down. I build custom tools for administrative teams, as a sole trader, and I’d like to build the one that removes it.</p>
-    <a class="btn" href="mailto:dimariowray46@gmail.com">Say hello <span>→</span></a>
+    <form class="cform panel" id="cform" novalidate>
+      <label>Your name<input type="text" name="name" id="cName" autocomplete="name" placeholder="Jane Smith" required></label>
+      <label>Your email<input type="email" name="email" id="cEmail" autocomplete="email" placeholder="jane@company.com" required></label>
+      <label>What needs fixing?<textarea name="message" id="cMsg" placeholder="Tell me about the task that eats your hours..." required></textarea></label>
+      <input class="hp" type="text" name="company" id="cHp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn" type="submit" id="cSend">Send message <span>→</span></button>
+      <div class="cstatus" id="cStatus" role="status" aria-live="polite"></div>
+    </form>
+    <div class="direct">Or email me directly: <a href="mailto:dimariowray46@gmail.com" id="cMail">dimariowray46@gmail.com</a><button class="copy" type="button" id="cCopy">Copy</button></div>
   </section>
 </main>
 <footer>© 2026 Dimario Wray · Built in Jamaica</footer>
@@ -649,6 +674,44 @@ window.__boot = function () {
   fontsOk.then(function () { measure(); measureMarquee(); __loader.finish(); });
 };
 requestAnimationFrame(function () { setTimeout(window.__boot, 120); });
+</script>
+
+<script>
+/* ===== Contact settings =====
+   email:    where messages should end up.
+   endpoint: your form service URL (e.g. a Formspree link like https://formspree.io/f/xxxxxxx).
+             Leave it empty and the form opens the visitor's email app instead. */
+window.CONTACT = { email: 'dimariowray46@gmail.com', endpoint: '' };
+(function () {
+  var form = document.getElementById('cform'); if (!form) return;
+  var st = document.getElementById('cStatus'), btn = document.getElementById('cSend'), copyBtn = document.getElementById('cCopy');
+  function say(msg, err) { st.textContent = msg; st.className = 'cstatus' + (err ? ' err' : ''); }
+  function valid(v) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v); }
+  function viaEmailApp(name, email, msg) {
+    var body = msg + '\n\n— ' + name + ' (' + email + ')';
+    window.location.href = 'mailto:' + window.CONTACT.email + '?subject=' + encodeURIComponent('Message from ' + name) + '&body=' + encodeURIComponent(body);
+    say('Opening your email app… if nothing happens, use the Copy button below and email me directly.');
+  }
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = document.getElementById('cName').value.trim(), email = document.getElementById('cEmail').value.trim(), msg = document.getElementById('cMsg').value.trim();
+    if (document.getElementById('cHp').value) return;
+    if (!name || !msg) { say('Please add your name and a message.', true); return; }
+    if (!valid(email)) { say('Please enter a valid email so I can reply.', true); return; }
+    if (!window.CONTACT.endpoint) { viaEmailApp(name, email, msg); return; }
+    btn.disabled = true; say('Sending…');
+    fetch(window.CONTACT.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ name: name, email: email, message: msg }) })
+      .then(function (r) { if (!r.ok) throw new Error('bad'); form.reset(); say('Message sent. Thank you, I’ll reply soon.'); })
+      .catch(function () { say('That didn’t go through. Please email me directly at ' + window.CONTACT.email + '.', true); })
+      .then(function () { btn.disabled = false; });
+  });
+  copyBtn.addEventListener('click', function () {
+    var t = window.CONTACT.email;
+    function done() { copyBtn.textContent = 'Copied'; setTimeout(function () { copyBtn.textContent = 'Copy'; }, 1800); }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(done, fallback); } else { fallback(); }
+    function fallback() { var ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = 0; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (x) {} document.body.removeChild(ta); }
+  });
+})();
 </script>
 </body>
 </html>
