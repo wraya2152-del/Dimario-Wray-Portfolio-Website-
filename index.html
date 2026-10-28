@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Dimario Wray: builder of web tools that remove friction from administrative work.">
-<meta property="og:title" content="Dimario Wray — Tech Earth Portfolio">
+<meta name="description" content="Builder of web tools that remove friction from administrative work.">
+<meta property="og:title" content="Mario">
 <meta property="og:description" content="Builder of tools that remove friction. Explore the tech Earth.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#02040a">
@@ -171,6 +171,70 @@
   .contact { text-align: left; align-items: flex-start; min-height: 100vh; }
   .btn { display: inline-flex; align-items: center; gap: 12px; margin-top: 34px; padding: 18px 30px; border: 1px solid var(--cyan); border-radius: 999px; font-family: var(--mono); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--text); background: rgba(53,224,255,.08); transition: all .3s; }
   .btn:hover { background: var(--cyan); color: #00131a; box-shadow: 0 0 36px rgba(53,224,255,.6); transform: translateY(-3px); }
+  /* tool demos */
+  .card .shot { position: relative; height: 92px; margin: -4px -4px 20px; padding: 28px 14px 10px; border: 1px solid var(--line); border-radius: 10px; background: rgba(2,10,22,.7); overflow: hidden; }
+  .card .shot::before { content: ""; position: absolute; left: 12px; top: 10px; width: 6px; height: 6px; border-radius: 50%; background: #ff7b7b; box-shadow: 12px 0 0 #ffd36b, 24px 0 0 #6bffb0; }
+  .card .shot i { display: block; height: 6px; margin: 0 0 8px; border-radius: 3px; background: linear-gradient(90deg, rgba(53,224,255,.6), rgba(138,107,255,.35)); transform-origin: left; animation: shotbar 2.8s ease-in-out infinite; }
+  @keyframes shotbar { 50% { transform: scaleX(.55); opacity: .6; } }
+  .cardfoot { margin-top: 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .card .cardfoot .st { margin-top: 0; }
+  .try { background: rgba(53,224,255,.08); border: 1px solid var(--cyan); color: var(--text); border-radius: 999px; padding: 9px 16px; font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: all .25s; }
+  .try:hover { background: var(--cyan); color: #00131a; box-shadow: 0 0 22px rgba(53,224,255,.5); }
+  html.modal-open, html.modal-open body { overflow: hidden; }
+  .modal { position: fixed; inset: 0; z-index: 90; display: none; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px); background: rgba(2,4,10,.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .modal.open { display: flex; animation: mfade .3s ease; }
+  @keyframes mfade { from { opacity: 0; } }
+  .mbox { position: relative; width: min(1000px, 100%); max-height: 100%; overflow: auto; padding: 30px; background: rgba(4,14,28,.94); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 0 70px rgba(53,224,255,.16); }
+  .mbox h3 { margin: 0 0 4px; font-size: 1.8rem; }
+  .mnote { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .mclose { position: absolute; top: 14px; right: 14px; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: rgba(2,10,22,.8); color: var(--cyan); font-size: 18px; cursor: pointer; }
+  .mclose:hover { border-color: var(--cyan); }
+  .dgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 22px; }
+  .dlabel { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--cyan); margin-bottom: 10px; }
+  .dpane textarea, .dpane input, .dpane select { width: 100%; background: rgba(2,10,22,.72); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; color: var(--text); font-family: var(--display); font-size: .95rem; }
+  .dpane textarea { min-height: 250px; resize: vertical; line-height: 1.5; }
+  .dpane textarea:focus, .dpane input:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(53,224,255,.16); }
+  .dpane label { display: grid; gap: 6px; font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .drow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .dhint { margin-top: 12px; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--muted); line-height: 1.5; }
+  .paper { background: #f4f8fb; color: #0b1a26; border-radius: 6px; padding: 22px; font-family: Georgia, "Times New Roman", serif; font-size: 13.5px; line-height: 1.55; min-height: 300px; box-shadow: 0 0 34px rgba(53,224,255,.18); white-space: normal; }
+  .paper .ph { text-align: center; border-bottom: 2px solid #0b1a26; padding-bottom: 10px; margin-bottom: 12px; }
+  .paper .ph b { display: block; letter-spacing: .12em; font-size: 14px; }
+  .paper .pt { font-size: 12.5px; margin-top: 2px; } .paper .pn { font-size: 11.5px; margin-top: 8px; color: #44596a; }
+  .paper h5 { margin: 14px 0 6px; font-family: Georgia, serif; font-size: 12.5px; letter-spacing: .1em; border-bottom: 1px solid #b9c8d3; padding-bottom: 3px; }
+  .paper .pq { display: flex; gap: 8px; margin: 5px 0; } .paper .pnum { font-weight: 700; min-width: 20px; } .paper .ptxt { flex: 1; } .paper .pm { font-weight: 700; }
+  .paper .pf { margin-top: 14px; padding-top: 8px; border-top: 1px solid #b9c8d3; font-size: 12px; text-align: right; font-style: italic; }
+  .dtop { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .dtop input { flex: 1 1 160px; min-width: 0; background: rgba(2,10,22,.72); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; color: var(--text); font-family: var(--display); font-size: .95rem; }
+  .dtop input[type=number] { flex: 0 0 90px; }
+  .dbtn { background: rgba(53,224,255,.1); border: 1px solid var(--cyan); color: var(--text); border-radius: 10px; padding: 10px 16px; font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+  .dbtn:hover:not(:disabled) { background: var(--cyan); color: #00131a; } .dbtn:disabled { opacity: .55; cursor: wait; }
+  .dsum { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 8px; }
+  .chip { padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .chip b { color: var(--text); margin-right: 6px; } .chip.warn { border-color: #ff9a6b; color: #ffb48f; } .chip.warn b { color: #ffd0b8; }
+  .dtable { display: grid; gap: 8px; margin-top: 10px; }
+  .irow { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: rgba(2,10,22,.55); }
+  .irow.low { border-color: rgba(255,154,107,.6); box-shadow: 0 0 18px rgba(255,154,107,.12); } .irow.out { border-color: rgba(255,107,107,.7); }
+  .qty { display: inline-flex; align-items: center; gap: 10px; font-family: var(--mono); }
+  .qty button { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line); background: rgba(53,224,255,.08); color: var(--cyan); font-size: 16px; cursor: pointer; }
+  .qty button:hover { border-color: var(--cyan); } .qty span { min-width: 34px; text-align: center; font-size: 1.05rem; }
+  .badge { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--mint); color: var(--mint); }
+  .irow.low .badge { border-color: #ff9a6b; color: #ffb48f; } .irow.out .badge { border-color: #ff6b6b; color: #ff9a9a; }
+  .mrow { display: grid; grid-template-columns: 1fr 86px; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .mrow input { text-align: center; transition: box-shadow .3s, border-color .3s; } .mrow input.flash { border-color: var(--mint); box-shadow: 0 0 16px rgba(92,255,196,.5); }
+  .mrow span { font-size: .92rem; color: #c4def0; }
+  .paper table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; } .paper th, .paper td { text-align: left; padding: 6px 4px; border-bottom: 1px solid #cfdbe4; } .paper td:nth-child(n+2), .paper th:nth-child(n+2) { text-align: center; }
+  .paper .tstamp { margin-top: 14px; font-size: 11px; font-style: italic; color: #44596a; text-align: right; }
+  .paper .tavg { margin-top: 12px; font-weight: 700; display: flex; justify-content: space-between; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; }
+  .tabs button { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 8px 16px; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+  .tabs button.on { border-color: var(--cyan); color: var(--text); background: rgba(53,224,255,.1); }
+  .paper.letter { white-space: pre-wrap; }
+  .paper mark.var { background: rgba(53,224,255,.32); color: #04364a; padding: 0 3px; border-radius: 3px; font-weight: 700; }
+  .paper mark.var.empty { background: #e6edf2; color: #7a8fa0; font-weight: 400; }
+  @media (max-width: 760px) { .dgrid { grid-template-columns: 1fr; } .mbox { padding: 22px 18px; } .irow { grid-template-columns: 1fr auto; } .irow .badge { grid-column: 1 / -1; justify-self: start; } }
+  @media (prefers-reduced-motion: reduce) { .card .shot i { animation: none; } }
+
   /* contact form */
   .cform { width: min(540px, 100%); margin-top: 30px; padding: 26px; display: grid; gap: 16px; text-align: left; }
   .cform label { display: grid; gap: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--cyan); }
@@ -281,24 +345,28 @@
     <h2 data-split>Tools made for <em>real offices</em>.</h2>
     <div class="grid">
       <article class="card panel">
+        <div class="shot" aria-hidden="true"><i style="width:55%;animation-delay:0.0s"></i><i style="width:92%;animation-delay:0.3s"></i><i style="width:74%;animation-delay:0.6s"></i><i style="width:40%;animation-delay:0.8999999999999999s"></i></div>
         <span class="tag">Education</span><h3>Setwork</h3>
         <p>A browser-based exam-paper formatting tool that lets teachers produce clean, properly laid-out papers without fighting a word processor.</p>
-        <div class="st">Flagship venture</div>
+        <div class="cardfoot"><div class="st">Flagship venture</div><button class="try" type="button" data-demo="setwork">See it work →</button></div>
       </article>
       <article class="card panel">
+        <div class="shot" aria-hidden="true"><i style="width:88%;animation-delay:0.0s"></i><i style="width:60%;animation-delay:0.3s"></i><i style="width:95%;animation-delay:0.6s"></i><i style="width:48%;animation-delay:0.8999999999999999s"></i></div>
         <span class="tag">Operations</span><h3>Inventoria</h3>
         <p>Web-based inventory management built to replace the spreadsheets admin departments use to track what they own.</p>
-        <div class="st">In active development</div>
+        <div class="cardfoot"><div class="st">In active development</div><button class="try" type="button" data-demo="inventoria">See it work →</button></div>
       </article>
       <article class="card panel">
+        <div class="shot" aria-hidden="true"><i style="width:70%;animation-delay:0.0s"></i><i style="width:90%;animation-delay:0.3s"></i><i style="width:52%;animation-delay:0.6s"></i><i style="width:80%;animation-delay:0.8999999999999999s"></i></div>
         <span class="tag">Records</span><h3>Transcripta</h3>
         <p>High school transcript creation with cloud sync and AI-assisted OCR, built for the registry work schools repeat every year.</p>
-        <div class="st">Small pilot</div>
+        <div class="cardfoot"><div class="st">Small pilot</div><button class="try" type="button" data-demo="transcripta">See it work →</button></div>
       </article>
       <article class="card panel">
+        <div class="shot" aria-hidden="true"><i style="width:45%;animation-delay:0.0s"></i><i style="width:85%;animation-delay:0.3s"></i><i style="width:68%;animation-delay:0.6s"></i><i style="width:92%;animation-delay:0.8999999999999999s"></i></div>
         <span class="tag">Documents</span><h3>LetterForge</h3>
         <p>Upload a letter template once, tag the variable fields, then fill and reuse it for references, status letters and more.</p>
-        <div class="st">In the toolkit</div>
+        <div class="cardfoot"><div class="st">In the toolkit</div><button class="try" type="button" data-demo="letterforge">See it work →</button></div>
       </article>
     </div>
   </section>
@@ -563,7 +631,7 @@ window.__boot = function () {
   var hintEl = document.getElementById('hint'), hintGone = false;
 
   window.addEventListener('pointerdown', function (e) {
-    if (e.target.closest('a, button')) return;
+    if (e.target.closest('a, button, input, textarea, select, .modal')) return;
     if (e.pointerType === 'mouse') { if (e.button !== 0) return; }
     dragging = true; dragId = e.pointerId; lastX = e.clientX; lastY = e.clientY; lastMove = performance.now();
     document.body.classList.add('dragging'); hintGone = true;
@@ -714,5 +782,164 @@ window.CONTACT = { email: 'dimariowray46@gmail.com', endpoint: '' };
   });
 })();
 </script>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle">
+  <div class="mbox">
+    <button class="mclose" id="mclose" type="button" aria-label="Close demo">✕</button>
+    <h3 id="mtitle"></h3>
+    <div class="mnote" id="msub"></div>
+    <div id="mbody"></div>
+    <div class="dhint" style="margin-top:22px">This is a small taste of the real tool, running on sample data.</div>
+  </div>
+</div>
+<script>
+(function () {
+  var modal = document.getElementById('modal'), body = document.getElementById('mbody'), lastBtn = null;
+  function h(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function pane(label) { var p = h('div', 'dpane'); p.appendChild(h('div', 'dlabel', label)); return p; }
+  function input(value, type) { var i = document.createElement('input'); i.type = type || 'text'; i.value = value == null ? '' : value; return i; }
+  function field(label, el) { var l = h('label'); l.appendChild(document.createTextNode(label)); l.appendChild(el); return l; }
+
+  /* ---------- Setwork: raw questions -> formatted exam paper ---------- */
+  function setwork(root) {
+    var grid = h('div', 'dgrid'), left = pane('1 · Paste your raw questions'), right = pane('2 · Your formatted paper, live');
+    var ta = document.createElement('textarea'); ta.spellcheck = false;
+    ta.value = ['Section A: Multiple choice', 'Which part of a plant absorbs water? [1]', 'What is the chemical symbol for water? [1]', 'Section B: Short answer', 'Explain why the sky appears blue. [3]', 'State two uses of a magnet. [2]', 'Section C: Essay', 'Discuss how recycling helps the environment. [6]'].join('\n');
+    var subj = input('Integrated Science'), time = input('1 hour 30 minutes'), row = h('div', 'drow');
+    row.appendChild(field('Subject', subj)); row.appendChild(field('Time allowed', time));
+    left.appendChild(ta); left.appendChild(row);
+    left.appendChild(h('div', 'dhint', 'Type a question per line and end it with [marks]. Start a line with “Section” for a heading.'));
+    var paper = h('div', 'paper'); right.appendChild(paper);
+    function render() {
+      paper.textContent = '';
+      var head = h('div', 'ph'); head.appendChild(h('b', null, 'SAMPLE HIGH SCHOOL'));
+      head.appendChild(h('div', 'pt', (subj.value || 'Subject') + ' · ' + (time.value || 'Time')));
+      head.appendChild(h('div', 'pn', 'Name: ____________________    Class: ________')); paper.appendChild(head);
+      var n = 0, total = 0;
+      ta.value.split('\n').forEach(function (raw) {
+        var line = raw.trim(); if (!line) return;
+        if (/^section/i.test(line)) { paper.appendChild(h('h5', null, line.toUpperCase())); return; }
+        var m = line.match(/\[(\d+)\]\s*$/), marks = m ? +m[1] : 0, text = m ? line.replace(/\s*\[\d+\]\s*$/, '') : line;
+        n++; total += marks;
+        var q = h('div', 'pq'); q.appendChild(h('span', 'pnum', n + '.')); q.appendChild(h('span', 'ptxt', text)); if (marks) q.appendChild(h('span', 'pm', '[' + marks + ']')); paper.appendChild(q);
+      });
+      paper.appendChild(h('div', 'pf', 'Total: ' + total + ' marks · ' + n + ' questions'));
+    }
+    [ta, subj, time].forEach(function (el) { el.addEventListener('input', render); });
+    grid.appendChild(left); grid.appendChild(right); root.appendChild(grid); render();
+  }
+
+  /* ---------- Inventoria: live stock list with low-stock alerts ---------- */
+  function inventoria(root) {
+    var LOW = 5, items = [['A4 printer paper (reams)', 24], ['Whiteboard markers', 6], ['Toner cartridges', 2], ['Staplers', 9], ['Report folders', 0]].map(function (a) { return { n: a[0], q: a[1] }; });
+    var top = h('div', 'dtop'), search = input('', 'search'), name = input(''), qty = input('10', 'number'), add = h('button', 'dbtn', 'Add item');
+    search.placeholder = 'Search items…'; name.placeholder = 'New item name'; add.type = 'button';
+    top.appendChild(search); top.appendChild(name); top.appendChild(qty); top.appendChild(add);
+    var sum = h('div', 'dsum'), table = h('div', 'dtable'), alertEl = h('div', 'dhint');
+    root.appendChild(top); root.appendChild(sum); root.appendChild(table); root.appendChild(alertEl);
+    function render() {
+      var term = search.value.trim().toLowerCase(), low = items.filter(function (i) { return i.q <= LOW; });
+      sum.textContent = '';
+      var c1 = h('div', 'chip'); c1.appendChild(h('b', null, items.length)); c1.appendChild(document.createTextNode('items tracked'));
+      var c2 = h('div', 'chip' + (low.length ? ' warn' : '')); c2.appendChild(h('b', null, low.length)); c2.appendChild(document.createTextNode('need reordering'));
+      sum.appendChild(c1); sum.appendChild(c2);
+      table.textContent = '';
+      items.forEach(function (it) {
+        if (term && it.n.toLowerCase().indexOf(term) < 0) return;
+        var r = h('div', 'irow' + (it.q === 0 ? ' out' : it.q <= LOW ? ' low' : '')); r.appendChild(h('span', null, it.n));
+        var q = h('div', 'qty'), minus = h('button', null, '−'), plus = h('button', null, '+'), val = h('span', null, it.q); minus.type = plus.type = 'button';
+        minus.setAttribute('aria-label', 'Decrease ' + it.n); plus.setAttribute('aria-label', 'Increase ' + it.n);
+        minus.onclick = function () { it.q = Math.max(0, it.q - 1); render(); }; plus.onclick = function () { it.q++; render(); };
+        q.appendChild(minus); q.appendChild(val); q.appendChild(plus); r.appendChild(q);
+        r.appendChild(h('span', 'badge', it.q === 0 ? 'OUT' : it.q <= LOW ? 'LOW' : 'IN STOCK')); table.appendChild(r);
+      });
+      alertEl.textContent = low.length ? 'Reorder soon: ' + low.map(function (i) { return i.n; }).join(', ') + '.' : 'Everything is well stocked.';
+    }
+    add.onclick = function () { var n = name.value.trim(); if (!n) { name.focus(); return; } items.unshift({ n: n, q: Math.max(0, parseInt(qty.value, 10) || 0) }); name.value = ''; render(); };
+    search.addEventListener('input', render); render();
+  }
+
+  /* ---------- Transcripta: marks in, transcript out (with a scan demo) ---------- */
+  function transcripta(root) {
+    var subjects = ['English A', 'Mathematics', 'Integrated Science', 'Social Studies', 'Information Technology'], scanVals = [78, 64, 88, 71, 93];
+    function grade(m) { return m >= 85 ? 'A' : m >= 70 ? 'B' : m >= 55 ? 'C' : m >= 40 ? 'D' : 'E'; }
+    var grid = h('div', 'dgrid'), left = pane('1 · Enter marks, or scan a marksheet'), right = pane('2 · Transcript, built automatically');
+    var inputs = subjects.map(function (s) { var i = input('', 'number'); i.min = 0; i.max = 100; i.placeholder = '—'; var r = h('div', 'mrow'); r.appendChild(h('span', null, s)); r.appendChild(i); left.appendChild(r); return i; });
+    var scan = h('button', 'dbtn', 'Scan sample marksheet'), status = h('div', 'dhint', 'Marks are graded as you type. A = 85+, B = 70+, C = 55+, D = 40+.'); scan.type = 'button';
+    left.appendChild(scan); left.appendChild(status);
+    var paper = h('div', 'paper'); right.appendChild(paper);
+    function render() {
+      paper.textContent = '';
+      var head = h('div', 'ph'); head.appendChild(h('b', null, 'OFFICIAL TRANSCRIPT')); head.appendChild(h('div', 'pt', 'Sample High School · Term 1')); head.appendChild(h('div', 'pn', 'Student: Jane Sample · Form 4')); paper.appendChild(head);
+      var t = document.createElement('table'), hr = document.createElement('tr'); ['Subject', 'Mark', 'Grade'].forEach(function (x) { hr.appendChild(h('th', null, x)); }); t.appendChild(hr);
+      var sum = 0, cnt = 0;
+      subjects.forEach(function (s, i) {
+        var v = inputs[i].value === '' ? null : clampN(+inputs[i].value), tr = document.createElement('tr');
+        tr.appendChild(h('td', null, s)); tr.appendChild(h('td', null, v == null ? '—' : v)); tr.appendChild(h('td', null, v == null ? '—' : grade(v))); t.appendChild(tr);
+        if (v != null) { sum += v; cnt++; }
+      });
+      paper.appendChild(t);
+      var avg = cnt ? Math.round(sum / cnt * 10) / 10 : null, a = h('div', 'tavg'); a.appendChild(h('span', null, 'Average'));
+      a.appendChild(h('span', null, avg == null ? '—' : avg + '%  ·  Grade ' + grade(avg))); paper.appendChild(a);
+      paper.appendChild(h('div', 'tstamp', 'Generated automatically · saved to the cloud'));
+    }
+    function clampN(n) { return Math.max(0, Math.min(100, Math.round(n))); }
+    inputs.forEach(function (i) { i.addEventListener('input', render); });
+    scan.onclick = function () {
+      scan.disabled = true; status.textContent = 'Scanning marksheet…';
+      inputs.forEach(function (i) { i.value = ''; }); render();
+      inputs.forEach(function (inp, idx) {
+        setTimeout(function () { inp.value = scanVals[idx]; inp.classList.add('flash'); render(); status.textContent = 'Reading ' + subjects[idx] + '…'; setTimeout(function () { inp.classList.remove('flash'); }, 500); }, 600 + idx * 650);
+      });
+      setTimeout(function () { status.textContent = 'Done. 5 subjects read, transcript ready. You can still edit any mark.'; scan.disabled = false; }, 600 + inputs.length * 650);
+    };
+    grid.appendChild(left); grid.appendChild(right); root.appendChild(grid); render();
+  }
+
+  /* ---------- LetterForge: tag the fields once, fill and reuse ---------- */
+  function letterforge(root) {
+    var TPL = {
+      'Reference letter': 'To Whom It May Concern,\n\nThis letter confirms that {{name}} has been {{role}} at {{org}} since {{date}}. During this time, {{name}} has shown reliability and strong attention to detail.\n\nPlease contact us if you need any further information.\n\nYours sincerely,\nThe Administrator',
+      'Status letter': 'Dear {{name}},\n\nThis is to confirm that your {{doc}} is currently {{status}} as of {{date}}.\n\nIf anything changes, we will let you know right away.\n\nRegards,\nAdministration Office'
+    };
+    var vals = { name: 'Alex Morgan', role: 'working as an administrative assistant', org: 'Sample Company Ltd', date: '3 March 2024', doc: 'application', status: 'approved' }, current = 'Reference letter';
+    var tabs = h('div', 'tabs'), grid = h('div', 'dgrid'), left = pane('1 · Fields tagged in the template'), right = pane('2 · Your finished letter');
+    var form = h('div'), paper = h('div', 'paper letter'); left.appendChild(form); right.appendChild(paper);
+    var tabBtns = Object.keys(TPL).map(function (k) { var b = h('button', null, k); b.type = 'button'; b.onclick = function () { current = k; draw(); }; tabs.appendChild(b); return b; });
+    function draw() {
+      tabBtns.forEach(function (b) { b.className = b.textContent === current ? 'on' : ''; });
+      var names = [], re = /\{\{(\w+)\}\}/g, m; while ((m = re.exec(TPL[current]))) { if (names.indexOf(m[1]) < 0) names.push(m[1]); }
+      form.textContent = '';
+      names.forEach(function (n) { var i = input(vals[n]); i.addEventListener('input', function () { vals[n] = i.value; fill(); }); var wrap = h('div'); wrap.style.marginBottom = '12px'; wrap.appendChild(field(n, i)); form.appendChild(wrap); });
+      fill();
+    }
+    function fill() {
+      paper.textContent = '';
+      TPL[current].split(/(\{\{\w+\}\})/).forEach(function (part) {
+        var m = part.match(/^\{\{(\w+)\}\}$/);
+        if (!m) { paper.appendChild(document.createTextNode(part)); return; }
+        var v = (vals[m[1]] || '').trim(), mk = h('mark', 'var' + (v ? '' : ' empty'), v || part); paper.appendChild(mk);
+      });
+    }
+    root.appendChild(tabs); grid.appendChild(left); grid.appendChild(right); root.appendChild(grid); draw();
+  }
+
+  var defs = {
+    setwork: { t: 'Setwork', s: 'Raw questions in, formatted exam paper out', f: setwork },
+    inventoria: { t: 'Inventoria', s: 'Stock levels at a glance', f: inventoria },
+    transcripta: { t: 'Transcripta', s: 'Transcripts that build themselves', f: transcripta },
+    letterforge: { t: 'LetterForge', s: 'Fill a letter once, reuse it forever', f: letterforge }
+  };
+  function open(key, btn) {
+    var d = defs[key]; if (!d) return; lastBtn = btn || null;
+    document.getElementById('mtitle').textContent = d.t; document.getElementById('msub').textContent = d.s;
+    body.textContent = ''; d.f(body);
+    modal.classList.add('open'); document.documentElement.classList.add('modal-open'); document.getElementById('mclose').focus();
+  }
+  function close() { modal.classList.remove('open'); document.documentElement.classList.remove('modal-open'); body.textContent = ''; if (lastBtn) lastBtn.focus(); }
+  document.addEventListener('click', function (e) { var b = e.target.closest('.try'); if (b) { open(b.getAttribute('data-demo'), b); return; } if (e.target === modal || e.target.closest('#mclose')) close(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
+})();
+</script>
 </body>
+
 </html>

@@ -4,6 +4,7 @@ A personal website that is mostly a **nice graphic experience**: a glowing, spin
 
 - **Drag** to spin the Earth.
 - **Scroll** and the Earth zooms and travels while the words slide and lean with you.
+- Each project card has a **See it work** button that opens a small interactive demo of the tool, running on sample data.
 - A short loading screen plays when the page first opens.
 
 It is one plain web page. No frameworks, no installs, no build step, and it works offline because everything it needs is in this folder.
@@ -30,6 +31,8 @@ Easy things to change:
 - **Your name:** search for `Dimario` and `Wray`.
 - **Contact email:** search for `window.CONTACT` (and `mailto:` for the link under the form).
 - **Project cards:** search for `class="card panel"`. Each card is one project.
+- **Browser tab title:** search for `<title>` (and `og:title` for link previews).
+- **Demos:** the demo code is near the bottom of `index.html`. Look for `function setwork`, `function inventoria`, `function transcripta` and `function letterforge`.
 - **Colors:** at the top of the file, find `--cyan`, `--violet` and `--mint`.
 
 ## Set up the contact form
