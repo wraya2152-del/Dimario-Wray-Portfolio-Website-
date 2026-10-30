@@ -4,6 +4,7 @@ A personal website that is mostly a **nice graphic experience**: a glowing, spin
 
 - **Drag** to spin the Earth.
 - **Scroll** and the Earth zooms and travels while the words slide and lean with you.
+- When the page opens, a little rocket lands each letter of the name. (Visitors who have "reduce motion" switched on in their device settings skip this. The **Replay intro** link in the footer plays it on request.)
 - Each project card has a **See it work** button that opens a small interactive demo of the tool, running on sample data.
 - A short loading screen plays when the page first opens.
 

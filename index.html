@@ -118,9 +118,21 @@
   .hero h1 { margin: 0; font-size: clamp(2.3rem, 9.2vw, 9rem); line-height: .95; font-weight: 700; letter-spacing: -.03em; text-transform: uppercase; }
   .hero h1 .row { display: block; white-space: nowrap; }
   .hero h1 .row.hi { font-size: .36em; letter-spacing: .14em; margin-bottom: .22em; }
-  .hero h1 .row.hi .wi { color: var(--cyan); text-shadow: 0 0 22px rgba(53,224,255,.7); }
-  .hero h1 .wi { color: rgba(232,247,255,.95); text-shadow: 0 0 30px rgba(53,224,255,.45); }
-  .hero h1.in .wi { transition-duration: .9s; transition-delay: calc(.2s + var(--i) * .11s); }
+  .hero h1 .row { color: rgba(232,247,255,.95); text-shadow: 0 0 30px rgba(53,224,255,.45); }
+  .hero h1 .row.hi { color: var(--cyan); text-shadow: 0 0 22px rgba(53,224,255,.7); }
+  .L { display: inline-block; transition: opacity .12s ease, transform .5s cubic-bezier(.3,1.7,.5,1); }
+  .hero h1.pre .L:not(.landed) { opacity: 0; transform: translateY(-16px) scale(.45); }
+  .L.landed { animation: lpop .8s ease-out; }
+  @keyframes lpop { 0% { filter: brightness(2.6) drop-shadow(0 0 22px #fff); } 100% { filter: none; } }
+  .rockets { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 6; }
+  .rk { position: absolute; left: 0; top: 0; width: 24px; height: 56px; transform-origin: 50% 50%; will-change: transform; filter: drop-shadow(0 0 8px rgba(53,224,255,.55)); }
+  .rk svg { display: block; overflow: visible; }
+  .rk .fl { transform-origin: 12px 41px; animation: flick .08s linear infinite alternate; }
+  .rk.soft .fl { animation-name: flicksoft; } .rk.burn .fl { animation-name: flickbig; }
+  @keyframes flick { from { transform: scaleY(.85); } to { transform: scaleY(1.3); } }
+  @keyframes flicksoft { from { transform: scaleY(.3); } to { transform: scaleY(.55); } }
+  @keyframes flickbig { from { transform: scaleY(1.2); } to { transform: scaleY(1.9); } }
+  .spk { position: absolute; left: 0; top: 0; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: #ffd36b; box-shadow: 0 0 9px #ff9a3c; pointer-events: none; }
   .hero .sub { margin-top: 30px; font-family: var(--mono); font-size: clamp(.7rem, 1.3vw, 1rem); letter-spacing: .22em; text-transform: uppercase; color: var(--cyan); }
   .hero .sub b { color: var(--text); font-weight: 500; }
   .cue { position: absolute; bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); left: 0; right: 0; text-align: center; font-family: var(--mono); font-size: 11px; letter-spacing: .24em; text-transform: uppercase; color: var(--muted); }
@@ -255,6 +267,8 @@
   .copy { background: none; border: 1px solid var(--line); color: var(--cyan); border-radius: 999px; padding: 7px 14px; font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: all .25s; }
   .copy:hover { border-color: var(--cyan); background: rgba(53,224,255,.1); }
 
+  .replay { background: none; border: 0; padding: 0; margin: 0; color: var(--cyan); font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; border-bottom: 1px solid rgba(53,224,255,.5); }
+  .replay:hover { color: var(--text); border-bottom-color: var(--cyan); }
   footer { position: relative; z-index: 5; text-align: center; padding: 20px 20px calc(env(safe-area-inset-bottom, 0px) + 28px); font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
 
   @media (max-width: 760px) {
@@ -411,7 +425,7 @@
     <div class="direct">Or email me directly: <a href="mailto:dimariowray46@gmail.com" id="cMail">dimariowray46@gmail.com</a><button class="copy" type="button" id="cCopy">Copy</button></div>
   </section>
 </main>
-<footer>© 2026 · All rights reserved · Built in Jamaica</footer>
+<footer>© 2026 · All rights reserved · Built in Jamaica · <button class="replay" id="replay" type="button">↻ Replay intro</button></footer>
 
 <script src="vendor/three.min.js"></script>
 <script>
@@ -424,17 +438,65 @@ window.__boot = function () {
   function lerp(a, b, t) { return a + (b - a) * t; }
 
   /* ================= TEXT SETUP ================= */
-  // hero name: fades in word by word, exactly like the headings further down
-  var nameEl = document.getElementById('name'), heroSub = document.querySelector('.hero .sub'), nameIdx = 0;
+  // hero name: each letter is delivered by its own rocket after the loading screen
+  var nameEl = document.getElementById('name'), heroSub = document.querySelector('.hero .sub'), nameLetters = [];
   ['Hi, I’m', 'Dimario Wray'].forEach(function (line, ri) {
     var row = document.createElement('span'); row.className = ri === 0 ? 'row hi' : 'row'; row.setAttribute('aria-hidden', 'true');
-    line.split(' ').forEach(function (word, wi) {
-      if (wi) row.appendChild(document.createTextNode(' '));
-      var w = document.createElement('span'), inner = document.createElement('span');
-      w.className = 'w'; inner.className = 'wi'; inner.style.setProperty('--i', nameIdx++); inner.textContent = word; w.appendChild(inner); row.appendChild(w);
+    line.split('').forEach(function (ch) {
+      var sp = document.createElement('span'); sp.className = 'L'; sp.textContent = ch === ' ' ? '\u00a0' : ch; row.appendChild(sp);
+      if (ch !== ' ') nameLetters.push(sp);
     });
     nameEl.appendChild(row);
   });
+  if (typeof THREE !== 'undefined' && !reduce && Element.prototype.animate) nameEl.classList.add('pre');   // letters wait for their rockets
+  var rocketLayer = document.createElement('div'); rocketLayer.className = 'rockets'; rocketLayer.setAttribute('aria-hidden', 'true'); document.getElementById('top').appendChild(rocketLayer);
+  var ROCKET_SVG = '<svg viewBox="0 0 24 56" width="24" height="56"><defs><linearGradient id="rkg" x1="0" x2="1"><stop offset="0" stop-color="#8fa9bb"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#8fa9bb"/></linearGradient></defs>' +
+    '<g class="fl"><path d="M7.5 41 Q12 66 16.5 41Z" fill="#ff9a3c"/><path d="M9.5 41 Q12 56 14.5 41Z" fill="#fff3b8"/></g>' +
+    '<path d="M5 29 L0 41 L5 38Z M19 29 L24 41 L19 38Z" fill="#8a6bff"/>' +
+    '<path d="M12 0 C18.5 8 19.5 17 19.5 27 L19.5 39 L4.5 39 L4.5 27 C4.5 17 5.5 8 12 0Z" fill="url(#rkg)"/>' +
+    '<circle cx="12" cy="17" r="3.6" fill="#35e0ff" stroke="#0b1a26" stroke-width="1"/><rect x="8.5" y="39" width="7" height="3" rx="1" fill="#5d7487"/></svg>';
+  function sparks(cx, cy, sc) {
+    for (var k = 0; k < 7; k++) {
+      var d = document.createElement('i'); d.className = 'spk'; rocketLayer.appendChild(d);
+      var ang = Math.PI + Math.random() * Math.PI, dist = (22 + Math.random() * 36) * sc;
+      var an = d.animate([{ transform: 'translate(' + cx + 'px,' + cy + 'px) scale(1)', opacity: 1 }, { transform: 'translate(' + (cx + Math.cos(ang) * dist) + 'px,' + (cy + Math.sin(ang) * dist * 0.8 + 8) + 'px) scale(.2)', opacity: 0 }], { duration: 520 + Math.random() * 300, easing: 'cubic-bezier(.1,.6,.3,1)', fill: 'forwards' });
+      an.onfinish = (function (el) { return function () { el.remove(); }; })(d);
+    }
+  }
+  function replayIntro() {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setTimeout(function () {
+      if (!Element.prototype.animate) return;
+      rocketLayer.textContent = '';
+      nameLetters.forEach(function (L) { L.classList.remove('landed'); });
+      nameEl.classList.add('pre'); launchRockets();
+    }, 250);
+  }
+  var replayBtn = document.getElementById('replay'); if (replayBtn) replayBtn.addEventListener('click', replayIntro);
+  function launchRockets() {
+    if (!nameEl.classList.contains('pre')) return;
+    try {
+      nameLetters.forEach(function (L, i) {
+        var delay = 250 + i * 95 + Math.random() * 50, dur = 950 + Math.random() * 300;
+        var hr = document.getElementById('top').getBoundingClientRect(), nr = nameEl.getBoundingClientRect();
+        var cx = nr.left - hr.left + L.offsetLeft + L.offsetWidth / 2, cy = nr.top - hr.top + L.offsetTop + L.offsetHeight / 2, sc = clamp(L.offsetHeight / 95, 0.55, 1.15);
+        var rk = document.createElement('div'); rk.className = 'rk'; rk.innerHTML = ROCKET_SVG; rocketLayer.appendChild(rk);
+        var tf = function (x, y, r) { return 'translate(' + (x - 12) + 'px,' + (y - 28) + 'px) rotate(' + r + 'deg) scale(' + sc + ')'; };
+        var r0 = Math.random() * 30 - 15, x0 = cx + (Math.random() * 140 - 70);
+        var down = rk.animate([{ transform: tf(x0, -150, r0) }, { transform: tf(cx, cy, 0) }], { duration: dur, delay: delay, easing: 'cubic-bezier(.12,.7,.22,1)', fill: 'both' });
+        down.onfinish = function () {
+          L.classList.add('landed'); sparks(cx, cy + L.offsetHeight * 0.38, sc);
+          rk.classList.add('soft');
+          setTimeout(function () {
+            rk.classList.remove('soft'); rk.classList.add('burn');
+            var up = rk.animate([{ transform: tf(cx, cy, 0), opacity: 1 }, { transform: tf(cx + (Math.random() * 60 - 30), -(cy + 260), Math.random() * 14 - 7), opacity: 0 }], { duration: 750, easing: 'cubic-bezier(.6,0,.9,.55)', fill: 'forwards' });
+            up.onfinish = function () { rk.remove(); };
+          }, 170);
+        };
+      });
+      setTimeout(function () { nameEl.classList.remove('pre'); }, 4200);   // safety net: never leave a letter hidden
+    } catch (err) { nameEl.classList.remove('pre'); }
+  }
 
   // split headings into words
   var splitEls = document.querySelectorAll('[data-split]');
@@ -673,6 +735,7 @@ window.__boot = function () {
   function endDrag(e) { if (e.pointerId === dragId) { dragging = false; dragId = null; document.body.classList.remove('dragging'); lastMove = performance.now(); } }
   window.addEventListener('pointerup', endDrag); window.addEventListener('pointercancel', endDrag);
 
+
   function resize() {
     var w = innerWidth, h = innerHeight;
     renderer.setSize(w, h, false); camera.aspect = w / h; camera.fov = w / h < 0.8 ? 58 : 45; camera.updateProjectionMatrix();
@@ -685,7 +748,7 @@ window.__boot = function () {
   /* ================= LOOP ================= */
   var clock = new THREE.Clock(), lastScroll = window.scrollY, sv = 0, spinS = 0, spinXS = 0, frameN = 0;
   var revealed = false, revealT = 0;
-  window.__onReveal = function () { revealed = true; revealT = performance.now(); };
+  window.__onReveal = function () { revealed = true; revealT = performance.now(); launchRockets(); };
   var heroIn = false;
   var camX = 0, camY = 0, zoomCur = 4.8, activeDot = -1, lastSv = 9, lastSpin = 9;
   var rootRef = document.documentElement;
@@ -743,7 +806,7 @@ window.__boot = function () {
     hintEl.style.opacity = (!revealed || hintGone || sy > 60) ? 0 : 0.75;
     var wantHero = revealed && (heroIn ? sy < innerHeight * 0.9 : sy < innerHeight * 0.7);
     if (wantHero !== heroIn) { heroIn = wantHero; nameEl.classList.toggle('in', heroIn); }
-    updateScrub(revealed ? clamp((performance.now() - revealT - 900) / 1100, 0, 1) : 0);
+    updateScrub(revealed ? clamp((performance.now() - revealT - 2600) / 1100, 0, 1) : 0);
     for (var m = 0; m < marquees.length; m++) {
       var M = marquees[m]; M.p += (0.7 + sv * 9) * M.dir * (reduce ? 0.3 : 1);
       var pos = ((M.p % M.w) + M.w) % M.w; M.el.style.transform = 'translate3d(' + (-pos).toFixed(1) + 'px,0,0)';
