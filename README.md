@@ -46,6 +46,8 @@ The contact section has a message form and a "Copy email" button.
   3. In `index.html`, search for `window.CONTACT` and paste the link between the quotes after `endpoint:`.
   4. Upload the change. Visitors now see "Message sent" and the message arrives in your inbox.
 
+> **If you reuse this site:** the form and email in this copy belong to its original owner. Replace both (`email` and `endpoint` in the `window.CONTACT` line) with your own before publishing.
+
 ## Put it online for free
 
 **1. Put it on GitHub**

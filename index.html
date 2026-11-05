@@ -766,7 +766,7 @@ requestAnimationFrame(function () { setTimeout(window.__boot, 120); });
    email:    where messages should end up.
    endpoint: your form service URL (e.g. a Formspree link like https://formspree.io/f/xxxxxxx).
              Leave it empty and the form opens the visitor's email app instead. */
-window.CONTACT = { email: 'dimariowray.dev@gmail.com', endpoint: '' };
+window.CONTACT = { email: 'dimariowray.dev@gmail.com', endpoint: 'https://formspree.io/f/xpppboqr' };
 (function () {
   var form = document.getElementById('cform'); if (!form) return;
   var st = document.getElementById('cStatus'), btn = document.getElementById('cSend'), copyBtn = document.getElementById('cCopy');
@@ -785,9 +785,9 @@ window.CONTACT = { email: 'dimariowray.dev@gmail.com', endpoint: '' };
     if (!valid(email)) { say('Please enter a valid email so I can reply.', true); return; }
     if (!window.CONTACT.endpoint) { viaEmailApp(name, email, msg); return; }
     btn.disabled = true; say('Sending…');
-    fetch(window.CONTACT.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ name: name, email: email, message: msg }) })
+    fetch(window.CONTACT.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ name: name, email: email, message: msg, _subject: 'New message from ' + name }) })
       .then(function (r) { if (!r.ok) throw new Error('bad'); form.reset(); say('Message sent. Thank you, I’ll reply soon.'); })
-      .catch(function () { say('That didn’t go through. Please email me directly at ' + window.CONTACT.email + '.', true); })
+      .catch(function () { viaEmailApp(name, email, msg); say('Couldn’t send that directly, so I’m opening your email app instead. Or write to ' + window.CONTACT.email + '.', true); })
       .then(function () { btn.disabled = false; });
   });
   copyBtn.addEventListener('click', function () {
