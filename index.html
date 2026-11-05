@@ -257,14 +257,43 @@
 
   footer { position: relative; z-index: 5; text-align: center; padding: 20px 20px calc(env(safe-area-inset-bottom, 0px) + 28px); font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
 
+  .swipe { display: none; }
   @media (max-width: 760px) {
-    #c { opacity: .6; }
-    .links { gap: 14px; font-size: 10px; } .nav { padding-left: 16px; padding-right: 16px; }
-    .dots { display: none; }
-    .glow { display: none; }
-    section { padding: 14vh 6vw; }
-    .side .panel-wrap, .side { background: rgba(2,8,18,.55); border-radius: 18px; padding: 22px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-    .hint { font-size: 10px; }
+    #c { opacity: .85; }
+    .dots, .glow { display: none; }
+    section { padding: 13vh 6vw; min-height: auto; }
+    .hero, .contact { min-height: 100svh; }
+    .side .panel-wrap, .side { background: rgba(2,8,18,.5); border-radius: 18px; padding: 22px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+
+    /* top bar: just the mark. Navigation moves to a thumb-friendly bar at the bottom */
+    .nav { padding: calc(env(safe-area-inset-top, 0px) + 14px) 18px 10px; justify-content: center; }
+    .links { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); transform: translateX(-50%); z-index: 30; display: flex; gap: 2px; padding: 5px;
+      background: rgba(4,14,28,.78); border: 1px solid var(--line); border-radius: 999px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 8px 30px rgba(0,0,0,.5), 0 0 24px rgba(53,224,255,.12); font-size: 11px; letter-spacing: .1em; }
+    .links a { padding: 0 14px; min-height: 44px; display: inline-flex; align-items: center; border-radius: 999px; color: var(--muted); }
+    .links a::after { display: none; }
+    .links a.on { background: rgba(53,224,255,.16); color: var(--text); box-shadow: inset 0 0 0 1px rgba(53,224,255,.35); }
+    footer { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 92px); }
+
+    /* hero: bigger, bolder name; subtitle on one line; hint sits above the nav bar */
+    .hero h1 { font-size: clamp(2.8rem, 17.5vw, 5.2rem); line-height: .92; }
+    .hero h1 .row { white-space: normal; }
+    .hero h1 .row.hi { font-size: .3em; margin-bottom: .3em; }
+    .hero .sub { font-size: clamp(.56rem, 2.55vw, .75rem); letter-spacing: .12em; white-space: nowrap; margin-top: 22px; }
+    .hint { bottom: calc(env(safe-area-inset-bottom, 0px) + 78px); font-size: 10px; }
+
+    /* stats in one tidy row */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 24px; }
+    .stat { min-width: 0; padding: 12px 10px; border-radius: 14px; }
+    .stat b { font-size: 1.25rem; } .stat span { display: block; margin-top: 4px; font-size: 8.5px; letter-spacing: .06em; line-height: 1.35; }
+
+    /* projects: swipe sideways instead of four screens of scrolling */
+    #work .grid { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 28px -6vw 0; padding: 4px 6vw 14px; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    #work .grid::-webkit-scrollbar { display: none; }
+    #work .card { flex: 0 0 84%; scroll-snap-align: center; min-height: 0; padding: 22px; }
+    #work .card .shot { height: 62px; margin-bottom: 14px; padding: 24px 12px 6px; }
+    #work .card h3 { font-size: 1.6rem; margin: 10px 0 8px; }
+    .try { min-height: 44px; padding: 0 18px; display: inline-flex; align-items: center; }
+    .swipe { display: block; margin-top: 12px; font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--cyan); opacity: .8; }
   }
   @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .wi, .rv { transition-duration: .01s; transform: none !important; filter: none; } }
 </style>
@@ -372,6 +401,7 @@
         <div class="cardfoot"><div class="st">In the toolkit</div><button class="try" type="button" data-demo="letterforge">See it work →</button></div>
       </article>
     </div>
+    <div class="swipe" aria-hidden="true">Swipe for more tools →</div>
   </section>
 
   <div class="marquee" data-dir="-1"><div class="track"><span>Admin<i>✦</i>Technology<i>✦</i>Systems<i>✦</i></span><span>Admin<i>✦</i>Technology<i>✦</i>Systems<i>✦</i></span></div></div>
@@ -525,7 +555,7 @@ window.__boot = function () {
   /* ================= THREE SCENE ================= */
   var canvas = document.getElementById('c');
   var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, innerWidth < 760 ? 1.6 : 2));
   renderer.setClearColor(0x02040a, 1);
   var scene = new THREE.Scene();
   var camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
@@ -655,7 +685,7 @@ window.__boot = function () {
   var hintEl = document.getElementById('hint'), hintGone = false;
 
   window.addEventListener('pointerdown', function (e) {
-    if (e.target.closest('a, button, input, textarea, select, .modal')) return;
+    if (e.target.closest('a, button, input, textarea, select, .modal, #work .grid')) return;
     if (e.pointerType === 'mouse') { if (e.button !== 0) return; }
     dragging = true; dragId = e.pointerId; lastX = e.clientX; lastY = e.clientY; lastMove = performance.now();
     document.body.classList.add('dragging'); hintGone = true;
@@ -688,6 +718,7 @@ window.__boot = function () {
   var revealed = false, revealT = 0;
   window.__onReveal = function () { revealed = true; revealT = performance.now(); };
   var heroIn = false;
+  var navActive = -1;
   var camX = 0, camY = 0, zoomCur = 4.8, activeDot = -1, lastSv = 9, lastSpin = 9;
   var rootRef = document.documentElement;
 
@@ -725,7 +756,8 @@ window.__boot = function () {
       var c0 = cams[a], c1 = cams[Math.min(a + 1, cams.length - 1)], narrow = innerWidth / innerHeight < 0.8;
       var tx = lerp(c0.x, c1.x, f) * (narrow ? 0 : 1), ty = lerp(narrow ? c0.my : c0.y, narrow ? c1.my : c1.y, f), tz = lerp(c0.z, c1.z, f) * (narrow ? 1.25 : 1);
       camX += (tx - camX) * 0.07; camY += (ty - camY) * 0.07; zoomCur += (tz - zoomCur) * 0.07;
-      var near = Math.round(a + f); if (near !== activeDot) { if (dotBtns[activeDot]) dotBtns[activeDot].classList.remove('on'); activeDot = near; if (dotBtns[near]) dotBtns[near].classList.add('on'); }
+      var near = Math.round(a + f); if (near !== navActive) { navActive = near; Array.prototype.forEach.call(document.querySelectorAll('.links a'), function (l) { l.classList.toggle('on', secs[near] && l.getAttribute('href') === '#' + secs[near].id); }); }
+      if (near !== activeDot) { if (dotBtns[activeDot]) dotBtns[activeDot].classList.remove('on'); activeDot = near; if (dotBtns[near]) dotBtns[near].classList.add('on'); }
     }
     if (!revealed) zoomCur = 8.5;
     camera.position.z = zoomCur;
