@@ -1,11 +1,14 @@
-# Tech Earth Website
+# Infinite Zoom Portfolio Website
 
-A personal website that is mostly a **nice graphic experience**: a glowing, spinning "tech Earth" with moving words around it.
+A personal website built as an **infinite zoom**: scrolling keeps diving deeper, from the Milky Way into the solar system, into Earth, into the island of Jamaica, into an office workflow, and finally into a screen with frames inside frames that never end.
 
-- **Drag** to spin the Earth.
-- **Scroll** and the Earth zooms and travels while the words slide and lean with you.
-- Each project card has a **See it work** button that opens a small interactive demo of the tool, running on sample data.
-- A short loading screen plays when the page first opens.
+- **Scroll** (or use the scale ruler on the right, or the menu) to zoom in. Everything on the page grows past you and fades as the next level arrives.
+- The worlds hold still: nothing spins or drifts by itself, and dragging does nothing. Only scrolling moves you.
+- **Tool names around Earth** open a small interactive demo of each tool. The same demos open from the cards.
+- Earth uses real continents, and the Jamaica level uses the real outline of the island (open map data, Natural Earth).
+- A dot-grid portrait (a coarse halftone, one round dot per cell) sits beside the name at the start and reacts to your mouse, and a soft light follows your cursor. The loading screen is a galaxy that fills with stars and melts into the real one.
+- The whole site uses one fixed palette: ice white, cyan and violet on a deep navy background, so every level feels like part of the same place.
+- The page watches its own speed. If a computer struggles, it quietly draws fewer stars and drops fancy effects so scrolling stays smooth.
 
 It is one plain web page. No frameworks, no installs, no build step, and it works offline because everything it needs is in this folder.
 
@@ -13,7 +16,7 @@ It is one plain web page. No frameworks, no installs, no build step, and it work
 
 Double-click `index.html`. It opens in your browser (Chrome, Edge, Safari or Firefox).
 
-> It needs WebGL, which every modern browser has. If the Earth does not appear, update your browser.
+> It needs WebGL, which every modern browser has. If the 3D worlds do not appear, update your browser.
 
 ## What's in the folder
 
@@ -33,6 +36,7 @@ Easy things to change:
 - **Project cards:** search for `class="card panel"`. Each card is one project.
 - **Browser tab title:** search for `<title>` (and `og:title` for link previews).
 - **Demos:** the demo code is near the bottom of `index.html`. Look for `function setwork`, `function inventoria`, `function transcripta` and `function letterforge`.
+- **Portrait photo:** the About section holds one photo, stored inside `index.html`. To swap it, ask an AI assistant or a photo tool to cut out the background, save it as a 560 by 700 WebP image, convert it to a base64 data link, and paste it over the `src="data:image/webp...` text inside `<figure class="me">`.
 - **Colors:** at the top of the file, find `--cyan`, `--violet` and `--mint`.
 
 ## Set up the contact form
@@ -81,6 +85,8 @@ You get a live link within a minute or two.
 4. Wait a few minutes to a few hours. HTTPS turns on automatically.
 
 ## Credits and licenses
+
+- Map outlines: [Natural Earth](https://www.naturalearthdata.com), public domain, via the world-atlas package.
 
 - [three.js](https://threejs.org), MIT license (`vendor/LICENSE-three.txt`)
 - Space Grotesk and JetBrains Mono fonts, SIL Open Font License (`fonts/LICENSES-fonts.txt`)
