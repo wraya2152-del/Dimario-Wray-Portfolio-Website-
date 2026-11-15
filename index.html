@@ -444,7 +444,7 @@
 
   /* ===================== tidy, consistent look ===================== */
   /* a thin frame ties the four edges together */
-  #frame { position: fixed; inset: 12px; z-index: 3; pointer-events: none; border: 1px solid rgba(var(--acc-rgb), .13); }
+  #frame { position: fixed; inset: 0; z-index: 3; pointer-events: none; border: 1px solid rgba(var(--acc-rgb), .13); }
   #frame::before, #frame::after, #frame i { content: ""; position: absolute; width: 16px; height: 16px; border: 0 solid rgba(var(--acc-rgb), .75); }
   #frame::before { left: -1px; top: -1px; border-width: 1.5px 0 0 1.5px; } #frame::after { right: -1px; bottom: -1px; border-width: 0 1.5px 1.5px 0; }
   #frame i:nth-child(1) { right: -1px; top: -1px; border-width: 1.5px 1.5px 0 0; } #frame i:nth-child(2) { left: -1px; bottom: -1px; border-width: 0 0 1.5px 1.5px; }
@@ -468,7 +468,7 @@
   .lvl.contact .btn:hover { background: rgb(var(--acc-rgb)); filter: brightness(1.12); transform: translateY(-2px); color: #031018; }
   .lvl.contact .direct { color: #aebfce; } .lvl.contact .direct a { color: #fff; } .lvl.contact footer { color: #8fa4b6; }
   html.cf body.ready #tele, html.cf .dots { opacity: .3; }
-  @media (max-width: 760px) { #frame { inset: 7px; } #frame::before, #frame::after, #frame i { width: 11px; height: 11px; } .lvl.contact .lvl-in { padding: 18px 18px; } .dots { display: none; } }
+  @media (max-width: 760px) { #frame { inset: 0; } #frame::before, #frame::after, #frame i { width: 11px; height: 11px; } .lvl.contact .lvl-in { padding: 18px 18px; } .dots { display: none; } }
   @media (max-width: 760px) { .hero .id-row { gap: 30px; } }
 
   /* ===================== readability ===================== */
