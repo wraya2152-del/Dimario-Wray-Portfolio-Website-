@@ -2,7 +2,7 @@
 
 A personal website built as an **infinite zoom**: scrolling keeps diving deeper, from the Milky Way into the solar system, into Earth, into the island of Jamaica, into an office workflow, and finally into a screen with frames inside frames that never end.
 
-- **Scroll** (or use the scale ruler on the right, or the menu) to zoom in. Everything on the page grows past you and fades as the next level arrives.
+- **Scroll** (or use the scale ruler on the right, or the menu) to zoom in. The worlds grow past you as the next level arrives, while the text stays one size and simply fades and slides into place.
 - The worlds hold still: nothing spins or drifts by itself, and dragging does nothing. Only scrolling moves you.
 - **Tool names around Earth** open a small interactive demo of each tool. The same demos open from the cards.
 - Earth uses real continents, and the Jamaica level uses the real outline of the island (open map data, Natural Earth).

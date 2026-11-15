@@ -1219,11 +1219,11 @@ window.__boot = function () {
     for (var tm = 0; tm < timeMats.length; tm++) timeMats[tm].uniforms.time.value = t; netUniform.time.value = t; skyGroup.position.copy(camera.position);
     bgUniforms.uFade.value = ss(4.35, 4.95, p) * 0.45; rootEl.classList.toggle('cf', p > 4.6); bgUniforms.uZ.value = (p - 4.6) * 1.7 + t * 0.05; bgUniforms.time.value = t;
 
-    // ----- the page itself zooms too: each block grows as it leaves and rises out of the distance as it arrives -----
+    // ----- the words stay one size: each block fades and slides up a little as it leaves, and the next one slides in from below -----
     for (var ki = 0; ki < N; ki++) {
       var dd = p - ki, o = ss(-0.42, -0.12, dd) * (1 - ss(0.12, 0.5, dd)), el = lvls[ki], vis; if (ki === 0) o *= introK; vis = o > 0.01;
       if (vis !== wasVis[ki]) { wasVis[ki] = vis; el.style.visibility = vis ? 'visible' : 'hidden'; }
-      if (vis) { el.style.opacity = o.toFixed(3); el.style.transform = 'scale(' + Math.exp(0.9 * clamp(dd, -1.4, 1.4)).toFixed(3) + ')'; }
+      if (vis) { el.style.opacity = o.toFixed(3); el.style.transform = 'translate3d(0,' + (-clamp(dd, -1, 1) * 56).toFixed(1) + 'px,0)'; }
       el.classList.toggle('act', o > 0.55); el.classList.toggle('in', o > 0.3);
       if (ki === 0) { nameEl.classList.toggle('in', o > 0.3 && revealed); heroSub.style.opacity = clamp((o - 0.5) / 0.4, 0, 1).toFixed(3); }
     }
