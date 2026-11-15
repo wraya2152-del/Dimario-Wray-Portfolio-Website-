@@ -598,6 +598,16 @@
     #work .card .cardfoot { margin-top: auto; padding-top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
     .lvl.contact .cform { width: 100%; max-width: none; }
   }
+
+  /* footer: a small corner credit, not a big centered line */
+  footer, .lvl.contact footer {
+    position: fixed; left: auto; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    width: auto; max-width: 42vw; text-align: right; padding: 0; background: none; box-shadow: none;
+    font-size: 0.55rem !important; letter-spacing: .07em !important; opacity: .55; z-index: 5; pointer-events: none;
+  }
+  @media (max-width: 760px) {
+    footer, .lvl.contact footer { right: 10px; bottom: calc(env(safe-area-inset-bottom, 0px) + 66px); font-size: 0.5rem !important; max-width: 58vw; line-height: 1.3; }
+  }
 </style>
 <script>document.documentElement.classList.add('loading');</script>
 <noscript><style>.loader{display:none}.nav,.hero .sub,.dots{opacity:1!important;transform:none!important}</style></noscript>
@@ -906,7 +916,16 @@ window.__boot = function () {
   function glowTex(stops) { var s = 128, cv = document.createElement('canvas'); cv.width = cv.height = s; var g = cv.getContext('2d'), gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2); stops.forEach(function (st) { gr.addColorStop(st[0], st[1]); }); g.fillStyle = gr; g.fillRect(0, 0, s, s); return new THREE.CanvasTexture(cv); }
   function ringTex() { var s = 128, cv = document.createElement('canvas'); cv.width = cv.height = s; var g = cv.getContext('2d'); g.strokeStyle = 'rgba(255,255,255,.95)'; g.lineWidth = 5; g.beginPath(); g.arc(s / 2, s / 2, s / 2 - 8, 0, 6.2832); g.stroke(); g.strokeStyle = 'rgba(255,255,255,.25)'; g.lineWidth = 12; g.stroke(); return new THREE.CanvasTexture(cv); }
   var dotTex = glowTex([[0, 'rgba(255,255,255,1)'], [0.35, 'rgba(255,255,255,.8)'], [1, 'rgba(255,255,255,0)']]), ringT = ringTex();
-  function bandTex(c1, c2, freq, seedv) { return makeTex(96, 48, function (u, v) { var b = 0.5 + 0.5 * Math.sin(v * freq + 2.4 * Math.sin(u * 6.28 * 2 + seedv) * 0.3); return mixc(c1, c2, b); }); }
+  function bandTex(c1, c2, freq, seedv) {
+    return makeTex(224, 112, function (u, v) {
+      var warp = 2.4 * Math.sin(u * 6.28 * 2 + seedv) * 0.3, b = 0.5 + 0.5 * Math.sin(v * freq + warp);
+      var gx = u * 300 + seedv * 97, gy = v * 150;
+      var n1 = hash(Math.floor(gx), Math.floor(gy), Math.floor(seedv * 821) + 1), n2 = hash(Math.floor(gx * 0.31) + 5, Math.floor(gy * 0.31) + 3, Math.floor(seedv * 331) + 9);
+      var grain = n1 * 0.58 + n2 * 0.42;
+      b = clamp(b * 0.78 + grain * 0.22, 0, 1);
+      return mixc(c1, c2, b);
+    });
+  }
   function flatTex(hex) { var c = new THREE.Color(hex); return makeTex(2, 2, function () { return [c.r * 255, c.g * 255, c.b * 255]; }); }
 
   /* ---- real map data: continents and the island of Jamaica ---- */
@@ -920,7 +939,8 @@ window.__boot = function () {
   /* ---- shaders (every one carries its own opacity so a whole level can fade) ---- */
   var PVS = 'varying vec2 vUv; varying vec3 vNW; varying vec3 vN; void main(){ vUv = uv; vNW = normalize(mat3(modelMatrix) * normal); vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
   var PFS = 'uniform sampler2D map; uniform vec3 sunDir; uniform vec3 rim; uniform float gridA; uniform float uOp; varying vec2 vUv; varying vec3 vNW; varying vec3 vN;' +
-    'void main(){ vec3 base = texture2D(map, vUv).rgb; float ndl = dot(normalize(vNW), sunDir); float lit = smoothstep(-0.15, 0.4, ndl); vec3 col = base * (0.12 + 0.9 * lit);' +
+    'void main(){ vec3 base = texture2D(map, vUv).rgb; float ndl = dot(normalize(vNW), sunDir); float lit = smoothstep(-0.55, 0.7, ndl); vec3 col = base * (0.17 + 0.84 * lit);' +
+    'col += vec3(1.0) * pow(max(ndl, 0.0), 32.0) * 0.1;' +
     'float lon = abs(fract(vUv.x * 24.0) - 0.5); float lat = abs(fract(vUv.y * 12.0) - 0.5); float ln = max(smoothstep(0.475, 0.5, lon), smoothstep(0.475, 0.5, lat)); col += rim * ln * gridA * (0.2 + 0.5 * lit);' +
     'float r = pow(1.0 - max(dot(vN, vec3(0.0, 0.0, 1.0)), 0.0), 2.6); col += rim * r * 0.85; gl_FragColor = vec4(col, uOp); }';
   var AVS = 'varying vec3 vN; void main(){ vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
@@ -973,12 +993,46 @@ window.__boot = function () {
   var sunMark = addSprite(L0, L0.in, ringT, 0x35e0ff, 0.5, 1); sunMark.visible = false;   // kept out of sight: the hero stays clean
   var localBubble = addSprite(L0, L0.in, ringT, 0x35e0ff, 0.14, 0.7); localBubble.visible = false;   // roughly the size of our whole solar system, from here
 
+  /* ---- a face, sketched very vaguely into the stars: brighter where a soft portrait would catch the light, darker at the eyes. Camera-facing, so it reads correctly no matter how the galaxy is dragged. ---- */
+  function faceLight(u, v) {
+    var hx = u / 0.6, hy = v / 0.82, headD = hx * hx + hy * hy; if (headD > 1.2) return 0;
+    var edge = ss(1.2, 0.55, headD), b = 0.34;
+    function bump(cx, cy, sx, sy) { var dx = (u - cx) / sx, dy = (v - cy) / sy; return Math.exp(-(dx * dx + dy * dy)); }
+    b += 0.46 * bump(0, 0.24, 0.4, 0.38);
+    b += 0.2 * bump(0, -0.52, 0.32, 0.2);
+    b -= 0.5 * bump(-0.23, 0.08, 0.1, 0.085);
+    b -= 0.5 * bump(0.23, 0.08, 0.1, 0.085);
+    b += 0.3 * bump(0, 0.03, 0.05, 0.32);
+    b -= 0.22 * bump(0, -0.27, 0.16, 0.07);
+    b += 0.14 * bump(0, -0.39, 0.2, 0.05);
+    b -= 0.18 * bump(-0.4, -0.08, 0.14, 0.3);
+    b -= 0.18 * bump(0.4, -0.08, 0.14, 0.3);
+    return clamp(b, 0, 1) * edge;
+  }
+  var facePts = (function () {
+    var HW = 1.5, HH = 2.0, want = MOBILE ? 1000 : 2200, tries = want * 10, got = 0, pos = [], col = [], size = [], seedA = [];
+    for (var i = 0; i < tries && got < want; i++) {
+      var u = rnd() * 2 - 1, v = rnd() * 2 - 1, b = faceLight(u, v);
+      if (b <= 0.02 || rnd() > b) continue;
+      got++;
+      var x = u * HW, y = 2.05 + v * HH, z = 0.35 + gauss() * 0.35, tint = 0.76 + rnd() * 0.24, c = mixc([200, 225, 255], [255, 255, 255], rnd() * 0.5);
+      pos.push(x, y, z); col.push(c[0] / 255 * tint, c[1] / 255 * tint, c[2] / 255 * tint); size.push((0.7 + rnd() * 0.9) * (0.55 + b * 0.85)); seedA.push(rnd());
+    }
+    return skyPoints(pos, col, size, seedA, 0.85, true);
+  })();
+  L0.in.add(facePts); reg(L0, facePts.material, 0.4); track(facePts);
+
   /* ===== LEVEL 1: the solar system ===== */
   var L1 = makeLayer(1), sysG = new THREE.Group(); sysG.rotation.set(0.95, 0, 0.06); L1.in.add(sysG);
   var SUN_L = new THREE.Vector3(-1, 0, 0); L1.pan.copy(SUN_L.clone().applyEuler(sysG.rotation)).negate();
-  var sunMat = new THREE.ShaderMaterial({ uniforms: { time: { value: 0 }, uOp: { value: 1 } }, transparent: true, vertexShader: 'varying vec2 vUv; varying vec3 vN; void main(){ vUv = uv; vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: 'uniform float time; uniform float uOp; varying vec2 vUv; varying vec3 vN; float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); } float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1.0, 0.0)), f.x), mix(h(i + vec2(0.0, 1.0)), h(i + vec2(1.0, 1.0)), f.x), f.y); }' +
-      'void main(){ float g = n(vUv * vec2(40.0, 20.0) + time * 0.15) * 0.6 + n(vUv * vec2(90.0, 45.0) - time * 0.2) * 0.4; vec3 c = mix(vec3(0.15, 0.55, 1.0), vec3(0.85, 0.97, 1.0), g); float limb = 1.0 - pow(1.0 - max(dot(vN, vec3(0.0, 0.0, 1.0)), 0.0), 2.0) * 0.6; gl_FragColor = vec4(c * limb * 1.25, uOp); }' });
+  var sunMat = new THREE.ShaderMaterial({ uniforms: { time: { value: 0 }, uOp: { value: 1 } }, transparent: true, vertexShader: 'varying vec3 vN; varying vec3 vP; void main(){ vN = normalize(normalMatrix * normal); vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'uniform float time; uniform float uOp; varying vec3 vN; varying vec3 vP;' +
+      'float h3(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }' +
+      'float n3(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);' +
+      ' return mix(mix(mix(h3(i), h3(i + vec3(1,0,0)), f.x), mix(h3(i + vec3(0,1,0)), h3(i + vec3(1,1,0)), f.x), f.y),' +
+      '            mix(mix(h3(i + vec3(0,0,1)), h3(i + vec3(1,0,1)), f.x), mix(h3(i + vec3(0,1,1)), h3(i + vec3(1,1,1)), f.x), f.y), f.z); }' +
+      'void main(){ vec3 q = vP * 9.0 + vec3(time * 0.12, time * 0.09, -time * 0.1); float g = n3(q) * 0.6 + n3(vP * 20.0 - vec3(-time * 0.16, time * 0.14, time * 0.08)) * 0.4;' +
+      ' vec3 c = mix(vec3(0.15, 0.55, 1.0), vec3(0.85, 0.97, 1.0), g); float limb = 1.0 - pow(1.0 - max(dot(vN, vec3(0.0, 0.0, 1.0)), 0.0), 2.0) * 0.6; gl_FragColor = vec4(c * limb * 1.25, uOp); }' });
   reg(L1, sunMat, 1);
   var sunG = new THREE.Group(); sunG.position.copy(SUN_L); sysG.add(sunG); sunG.add(new THREE.Mesh(new THREE.SphereGeometry(0.26, 40, 28), sunMat));
   var sunGlowT = glowTex([[0, 'rgba(232,247,255,1)'], [0.18, 'rgba(120,215,255,.75)'], [0.5, 'rgba(53,150,255,.2)'], [1, 'rgba(53,100,255,0)']]);
@@ -997,14 +1051,16 @@ window.__boot = function () {
     var pts = [], i; for (i = 0; i < 240; i++) { var a = i / 240 * 6.2832; pts.push(new THREE.Vector3(SUN_L.x + Math.cos(a) * p.r, 0, Math.sin(a) * p.r)); }
     var om = new THREE.LineBasicMaterial({ color: 0x35e0ff, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false }); reg(L1, om, p.n === 'Earth' ? 0.55 : 0.28); sysG.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), om));
     var mat = planetMat(bandTex(p.c1, p.c2, p.f, p.a), p.rim, 0.35); reg(L1, mat, 1); planetMats.push(mat);
-    var mesh = new THREE.Mesh(new THREE.SphereGeometry(p.s, 24, 18), mat);
+    var mesh = new THREE.Mesh(new THREE.SphereGeometry(p.s, 36, 26), mat);
     if (p.n === 'Earth') { mesh.position.set(0, 0, -p.s); L1.in.add(mesh); } else { mesh.position.set(SUN_L.x + Math.cos(p.a) * p.r, 0, Math.sin(p.a) * p.r); sysG.add(mesh); }
     planetMeshes[p.n] = mesh;
     if (p.n !== 'Earth') { var halo = addSprite(L1, mesh, dotTex, p.rim, p.s * 5, 0.5); }
   });
   (function () { // Saturn's rings
-    var cv = document.createElement('canvas'); cv.width = 256; cv.height = 4; var g = cv.getContext('2d'), x;
-    for (x = 0; x < 256; x++) { var t = x / 255, a = t < 0.18 ? 0.15 : t < 0.58 ? 0.75 : t < 0.66 ? 0.05 : t < 0.95 ? 0.55 : 0.1, sh = 205 + Math.sin(t * 60) * 22; g.fillStyle = 'rgba(' + sh + ',' + (sh - 24) + ',' + (sh - 70) + ',' + a.toFixed(2) + ')'; g.fillRect(x, 0, 1, 4); }
+    var W = 512, cv = document.createElement('canvas'); cv.width = W; cv.height = 6; var g = cv.getContext('2d'), x;
+    var stops = [[0, 0.04], [0.2, 0.46], [0.42, 0.26], [0.6, 0.56], [0.8, 0.14], [1, 0.05]];
+    function ringA(t) { for (var k = 0; k < stops.length - 1; k++) { if (t >= stops[k][0] && t <= stops[k + 1][0]) { var f = sm((t - stops[k][0]) / (stops[k + 1][0] - stops[k][0])); return stops[k][1] + (stops[k + 1][1] - stops[k][1]) * f; } } return stops[stops.length - 1][1]; }
+    for (x = 0; x < W; x++) { var t = x / (W - 1), a = ringA(t) * (0.9 + 0.1 * hash(x, 7, 3)), sh = 210 + hash(x, 11, 5) * 10; g.fillStyle = 'rgba(' + sh.toFixed(0) + ',' + (sh - 8).toFixed(0) + ',' + (sh - 16).toFixed(0) + ',' + a.toFixed(3) + ')'; g.fillRect(x, 0, 1, 6); }
     var S = planetMeshes.Saturn, R = 0.19, inner = R * 1.3, outer = R * 2.4, rg = new THREE.RingGeometry(inner, outer, 90, 1), pos = rg.attributes.position, uv = rg.attributes.uv, i;
     for (i = 0; i < pos.count; i++) uv.setXY(i, (Math.sqrt(pos.getX(i) * pos.getX(i) + pos.getY(i) * pos.getY(i)) - inner) / (outer - inner), 0.5);
     var rm = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, side: THREE.DoubleSide, depthWrite: false }); reg(L1, rm, 1);
