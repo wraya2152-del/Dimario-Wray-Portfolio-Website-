@@ -1455,6 +1455,126 @@ window.CONTACT = { email: 'dimariowray.dev@gmail.com', endpoint: 'https://formsp
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
 })();
 </script>
+
+<!-- ===== FX layer: nebula colour, warp streaks on scroll, arrival pulses, shooting stars, vignette and grain ===== -->
+<style>
+  #fxneb { position: fixed; inset: -12%; z-index: 1; pointer-events: none; opacity: .62; mix-blend-mode: screen; transition: opacity 1.2s; }
+  #fxneb i { position: absolute; border-radius: 50%; will-change: transform; }
+  #fxneb i:nth-child(1) { left: 2%; top: 4%; width: 54vw; height: 54vw; background: radial-gradient(circle, rgba(var(--acc-rgb), .30), rgba(var(--acc-rgb), .08) 45%, transparent 68%); animation: fxnebA 36s ease-in-out infinite alternate; }
+  #fxneb i:nth-child(2) { right: 0; bottom: 0; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(var(--acc2-rgb), .26), rgba(var(--acc2-rgb), .07) 45%, transparent 68%); animation: fxnebB 44s ease-in-out infinite alternate; }
+  #fxneb i:nth-child(3) { left: 38%; top: 40%; width: 34vw; height: 34vw; background: radial-gradient(circle, rgba(53, 224, 255, .14), transparent 66%); animation: fxnebA 52s ease-in-out infinite alternate-reverse; }
+  @keyframes fxnebA { to { transform: translate3d(9vw, 7vh, 0) scale(1.18); } }
+  @keyframes fxnebB { to { transform: translate3d(-10vw, -8vh, 0) scale(1.14); } }
+  html.cf #fxneb { opacity: .16; }
+  #fxc { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+  #fxvig { position: fixed; inset: 0; z-index: 4; pointer-events: none; background: radial-gradient(ellipse at 50% 46%, transparent 50%, rgba(1, 3, 9, .55) 100%); }
+  #fxgrain { position: fixed; inset: 0; z-index: 4; pointer-events: none; opacity: .07; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  html.lowfx #fxneb, html.lowfx #fxc, html.lowfx #fxgrain { display: none; }
+
+  /* name: keeps its clean white, with a halo in the level's colour */
+  #name .row:not(.hi) .wi { text-shadow: 0 0 36px rgba(var(--acc-rgb), .5), 0 0 90px rgba(var(--acc2-rgb), .28), 0 2px 16px rgba(2, 4, 10, .85); }
+
+  /* panels get depth; tiles and cards lift toward you */
+  .panel { background-image: linear-gradient(155deg, rgba(var(--acc-rgb), .09), transparent 42%, rgba(var(--acc2-rgb), .06)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 18px 46px rgba(0, 0, 0, .38); }
+  .stat { transition: transform .3s ease, border-color .3s, box-shadow .3s; }
+  .stat:hover { transform: translateY(-5px); border-color: rgba(var(--acc-rgb), .75); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 18px 46px rgba(0, 0, 0, .45), 0 0 36px rgba(var(--acc-rgb), .25); }
+  .stat b { background: linear-gradient(90deg, #ffffff, rgb(var(--acc-rgb))); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-variant-numeric: tabular-nums; }
+  .card:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 26px 60px rgba(0, 0, 0, .5), 0 0 44px rgba(var(--acc-rgb), .2); }
+
+  /* buttons catch the light */
+  .btn, .try { position: relative; overflow: hidden; }
+  .btn::after, .try::after { content: ""; position: absolute; top: 0; bottom: 0; left: -70%; width: 45%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .5), transparent); transform: skewX(-20deg); transition: left .7s ease; pointer-events: none; }
+  .btn:hover::after, .try:hover::after { left: 135%; }
+
+  /* scroll cue */
+  .hint::after { content: ""; display: block; width: 9px; height: 9px; margin: 10px auto 0; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); animation: fxhint 1.7s ease-in-out infinite; }
+  @keyframes fxhint { 0%, 100% { transform: translateY(0) rotate(45deg); opacity: .4; } 50% { transform: translateY(7px) rotate(45deg); opacity: 1; } }
+
+  @media (max-width: 760px) { #fxneb { opacity: .5; } #fxneb i:nth-child(1) { width: 110vw; height: 110vw; } #fxneb i:nth-child(2) { width: 120vw; height: 120vw; } #fxneb i:nth-child(3) { display: none; } #fxgrain { display: none; } }
+  @media (prefers-reduced-motion: reduce) { #fxneb i, .hint::after { animation: none; } #fxc { display: none; } }
+</style>
+<div id="fxneb" aria-hidden="true"><i></i><i></i><i></i></div>
+<canvas id="fxc" aria-hidden="true"></canvas>
+<div id="fxvig" aria-hidden="true"></div>
+<div id="fxgrain" aria-hidden="true"></div>
+<script>
+(function () {
+  var root = document.documentElement, cv = document.getElementById('fxc');
+  if (!cv || !cv.getContext) return;
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* stat numbers count up the first time About arrives */
+  var about = document.getElementById('about'), counted = false;
+  function countUp() {
+    if (counted || !about) return; counted = true;
+    [].forEach.call(about.querySelectorAll('.stat b'), function (b, i) {
+      var end = parseInt(b.textContent, 10); if (isNaN(end) || reduce) return;
+      var t0 = performance.now() + i * 140, dur = 900; b.textContent = '0';
+      (function tick(now) { var k = Math.min(1, Math.max(0, (now - t0) / dur)); b.textContent = String(Math.round(end * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(tick); })(performance.now());
+    });
+  }
+  if (reduce) return;
+
+  var g = cv.getContext('2d'), W = 1, H = 1, dpr = 1, small = false;
+  function size() { small = innerWidth < 760; dpr = Math.min(window.devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  size(); addEventListener('resize', size);
+
+  var N = small ? 70 : 150, st = [];
+  for (var i = 0; i < N; i++) st.push({ a: Math.random() * Math.PI * 2, r: Math.random(), s: 0.5 + Math.random() * 1.2, w: 0.5 + Math.random() * 1.1 });
+  var LV = 5, lastP = -1, vel = 0, lastT = performance.now(), lastLvl = 0, rings = [], shoot = null, nextShoot = 5 + Math.random() * 6, acc = '128,150,255', acc2 = '190,120,255', fN = 0, dirty = false, vis = true;
+  document.addEventListener('visibilitychange', function () { vis = !document.hidden; lastT = performance.now(); });
+  function prog() { var m = root.scrollHeight - innerHeight; return m > 0 ? (window.scrollY / m) * LV : 0; }
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (!vis || root.classList.contains('lowfx')) return;
+    var dt = Math.min(0.05, (now - lastT) / 1000); lastT = now; fN++;
+    var p = prog(); if (lastP < 0) lastP = p;
+    var raw = dt > 0 ? (p - lastP) / dt : 0; lastP = p; vel += (raw - vel) * 0.18;
+    if (fN % 12 === 0) { var cs = getComputedStyle(root); acc = (cs.getPropertyValue('--acc-rgb') || acc).trim(); acc2 = (cs.getPropertyValue('--acc2-rgb') || acc2).trim(); }
+    if (about && !counted && about.classList.contains('act')) countUp();
+    var lvl = Math.max(0, Math.min(LV, Math.round(p)));
+    if (lvl !== lastLvl) { lastLvl = lvl; if (Math.abs(p - lvl) < 0.3) rings.push({ t: 0 }); }
+    var calm = p > 4.5 ? 0.3 : 1, sp = Math.abs(vel), active = sp > 0.02 || rings.length || shoot;
+    nextShoot -= dt; if (nextShoot <= 0 && !shoot && p < 2.4 && sp < 0.05) { var fromL = Math.random() < 0.5; shoot = { x: fromL ? -0.1 : 1.1, y: Math.random() * 0.45, dx: (fromL ? 1 : -1) * (0.9 + Math.random() * 0.5), dy: 0.25 + Math.random() * 0.3, t: 0 }; nextShoot = 7 + Math.random() * 9; active = true; }
+    if (!active) { if (dirty) { g.clearRect(0, 0, W, H); dirty = false; } return; }
+    g.clearRect(0, 0, W, H); dirty = true;
+    var cx = W / 2, cy = H / 2, R = Math.sqrt(cx * cx + cy * cy);
+
+    /* warp streaks: stars pull past you as fast as you scroll */
+    if (sp > 0.02) {
+      var al = Math.min(0.75, sp * 0.55) * calm, len = Math.min(0.22, sp * 0.085);
+      g.lineCap = 'round';
+      for (var i = 0; i < N; i++) {
+        var s = st[i]; s.r += vel * dt * 0.42 * s.s * (0.25 + s.r);
+        if (s.r > 1.05) { s.r = 0.04 + Math.random() * 0.1; s.a = Math.random() * Math.PI * 2; } else if (s.r < 0.03) { s.r = 0.9 + Math.random() * 0.15; s.a = Math.random() * Math.PI * 2; }
+        var r1 = s.r * R, r0 = Math.max(0, s.r - len * (0.3 + s.r) * s.s) * R, ca = Math.cos(s.a), sa = Math.sin(s.a);
+        g.strokeStyle = 'rgba(' + (i % 4 === 0 ? acc2 : i % 3 === 0 ? acc : '220,240,255') + ',' + (al * (0.25 + s.r * 0.75)).toFixed(3) + ')';
+        g.lineWidth = s.w * (0.5 + s.r);
+        g.beginPath(); g.moveTo(cx + ca * r0, cy + sa * r0); g.lineTo(cx + ca * r1, cy + sa * r1); g.stroke();
+      }
+    }
+    /* arrival pulse: a ring opens when you land on a level */
+    for (var q = rings.length - 1; q >= 0; q--) {
+      var rg = rings[q]; rg.t += dt / 1.1; if (rg.t >= 1) { rings.splice(q, 1); continue; }
+      var e = 1 - Math.pow(1 - rg.t, 3);
+      g.strokeStyle = 'rgba(' + acc + ',' + ((1 - rg.t) * 0.5 * calm).toFixed(3) + ')'; g.lineWidth = 1.5 + (1 - rg.t) * 2;
+      g.beginPath(); g.arc(cx, cy, 40 + e * R * 0.8, 0, Math.PI * 2); g.stroke();
+      g.strokeStyle = 'rgba(' + acc2 + ',' + ((1 - rg.t) * 0.22 * calm).toFixed(3) + ')'; g.lineWidth = 1;
+      g.beginPath(); g.arc(cx, cy, 20 + e * R * 0.55, 0, Math.PI * 2); g.stroke();
+    }
+    /* shooting star */
+    if (shoot) {
+      shoot.t += dt / 0.9; if (shoot.t >= 1) shoot = null; else {
+        var hx = (shoot.x + shoot.dx * shoot.t) * W, hy = (shoot.y + shoot.dy * shoot.t) * H, tl = 150, nx = shoot.dx * W, ny = shoot.dy * H, nl = Math.sqrt(nx * nx + ny * ny), fa = Math.sin(shoot.t * Math.PI);
+        var gr = g.createLinearGradient(hx, hy, hx - nx / nl * tl, hy - ny / nl * tl); gr.addColorStop(0, 'rgba(255,255,255,' + (0.9 * fa).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(' + acc + ',0)');
+        g.strokeStyle = gr; g.lineWidth = 1.6; g.beginPath(); g.moveTo(hx, hy); g.lineTo(hx - nx / nl * tl, hy - ny / nl * tl); g.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
 </body>
 
 </html>
