@@ -599,14 +599,14 @@
     .lvl.contact .cform { width: 100%; max-width: none; }
   }
 
-  /* footer: a small corner credit, not a big centered line */
+  /* footer: fixed to the bottom, centered, just smaller than before */
   footer, .lvl.contact footer {
-    position: fixed; left: auto; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
-    width: auto; max-width: 42vw; text-align: right; padding: 0; background: none; box-shadow: none;
-    font-size: 0.55rem !important; letter-spacing: .07em !important; opacity: .55; z-index: 5; pointer-events: none;
+    position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    width: auto; margin: 0; text-align: center; padding: 0; background: none; box-shadow: none;
+    font-size: 0.62rem !important; letter-spacing: .1em !important; opacity: .65; z-index: 5; pointer-events: none;
   }
   @media (max-width: 760px) {
-    footer, .lvl.contact footer { right: 10px; bottom: calc(env(safe-area-inset-bottom, 0px) + 66px); font-size: 0.5rem !important; max-width: 58vw; line-height: 1.3; }
+    footer, .lvl.contact footer { bottom: calc(env(safe-area-inset-bottom, 0px) + 60px); font-size: 0.56rem !important; }
   }
 </style>
 <script>document.documentElement.classList.add('loading');</script>
@@ -992,38 +992,6 @@ window.__boot = function () {
   addSprite(L0, galG, glowTex([[0, 'rgba(232,247,255,1)'], [0.25, 'rgba(110,190,255,.4)'], [1, 'rgba(138,107,255,0)']]), 0xffffff, 3.2, 0.62);
   var sunMark = addSprite(L0, L0.in, ringT, 0x35e0ff, 0.5, 1); sunMark.visible = false;   // kept out of sight: the hero stays clean
   var localBubble = addSprite(L0, L0.in, ringT, 0x35e0ff, 0.14, 0.7); localBubble.visible = false;   // roughly the size of our whole solar system, from here
-
-  /* ---- a face, sketched very vaguely into the stars: brighter where a soft portrait would catch the light, darker at the eyes. Camera-facing, so it reads correctly no matter how the galaxy is dragged. ---- */
-  function faceLight(u, v) {
-    var taper = clamp((0.25 - v) / 0.95, 0, 1), wScale = 0.6 - 0.22 * taper;
-    var hx = u / wScale, hy = v / 0.85, headD = hx * hx + hy * hy; if (headD > 1.15) return 0;
-    var edge = ss(1.15, 0.62, headD), b = 0.1;
-    function bump(cx, cy, sx, sy) { var dx = (u - cx) / sx, dy = (v - cy) / sy; return Math.exp(-(dx * dx + dy * dy)); }
-    b -= 0.16 * bump(0, 0.68, 0.5, 0.12);       // hairline shadow, top of head
-    b += 0.22 * bump(0, 0.42, 0.4, 0.2);        // forehead, kept clear of the eye line
-    b -= 0.5 * bump(-0.22, 0.08, 0.095, 0.075); // left eye socket
-    b -= 0.5 * bump(0.22, 0.08, 0.095, 0.075);  // right eye socket
-    b += 0.26 * bump(0, 0.08, 0.05, 0.3);       // nose bridge
-    b += 0.28 * bump(-0.33, -0.15, 0.12, 0.15); // left cheekbone, clear of the eye
-    b += 0.28 * bump(0.33, -0.15, 0.12, 0.15);  // right cheekbone, clear of the eye
-    b -= 0.2 * bump(0, -0.32, 0.17, 0.06);      // mouth shadow
-    b += 0.16 * bump(0, -0.46, 0.18, 0.045);    // chin highlight
-    b -= 0.24 * bump(-0.42, -0.26, 0.11, 0.2);  // left jaw contour
-    b -= 0.24 * bump(0.42, -0.26, 0.11, 0.2);   // right jaw contour
-    return clamp(b, 0, 1) * edge;
-  }
-  var facePts = (function () {
-    var HW = 1.5, HH = 2.0, want = MOBILE ? 1700 : 3600, tries = want * 24, got = 0, pos = [], col = [], size = [], seedA = [];
-    for (var i = 0; i < tries && got < want; i++) {
-      var u = rnd() * 2 - 1, v = rnd() * 2 - 1, b = faceLight(u, v);
-      if (b <= 0.015 || rnd() > b) continue;
-      got++;
-      var x = u * HW, y = 2.05 + v * HH, z = 0.35 + gauss() * 0.35, tint = 0.85 + rnd() * 0.15, c = mixc([200, 225, 255], [255, 255, 255], rnd() * 0.5);
-      pos.push(x, y, z); col.push(c[0] / 255 * tint, c[1] / 255 * tint, c[2] / 255 * tint); size.push((1.0 + rnd() * 1.1) * (0.6 + b * 1.1)); seedA.push(rnd());
-    }
-    return skyPoints(pos, col, size, seedA, 0.85, true);
-  })();
-  L0.in.add(facePts); reg(L0, facePts.material, 0.72); track(facePts);
 
   /* ===== LEVEL 1: the solar system ===== */
   var L1 = makeLayer(1), sysG = new THREE.Group(); sysG.rotation.set(0.95, 0, 0.06); L1.in.add(sysG);
