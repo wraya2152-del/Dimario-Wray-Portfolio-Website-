@@ -1010,17 +1010,17 @@ window.__boot = function () {
     return clamp(b, 0, 1) * edge;
   }
   var facePts = (function () {
-    var HW = 1.5, HH = 2.0, want = MOBILE ? 1000 : 2200, tries = want * 10, got = 0, pos = [], col = [], size = [], seedA = [];
+    var HW = 1.5, HH = 2.0, want = MOBILE ? 1700 : 3600, tries = want * 9, got = 0, pos = [], col = [], size = [], seedA = [];
     for (var i = 0; i < tries && got < want; i++) {
       var u = rnd() * 2 - 1, v = rnd() * 2 - 1, b = faceLight(u, v);
-      if (b <= 0.02 || rnd() > b) continue;
+      if (b <= 0.015 || rnd() > b) continue;
       got++;
-      var x = u * HW, y = 2.05 + v * HH, z = 0.35 + gauss() * 0.35, tint = 0.76 + rnd() * 0.24, c = mixc([200, 225, 255], [255, 255, 255], rnd() * 0.5);
-      pos.push(x, y, z); col.push(c[0] / 255 * tint, c[1] / 255 * tint, c[2] / 255 * tint); size.push((0.7 + rnd() * 0.9) * (0.55 + b * 0.85)); seedA.push(rnd());
+      var x = u * HW, y = 2.05 + v * HH, z = 0.35 + gauss() * 0.35, tint = 0.85 + rnd() * 0.15, c = mixc([200, 225, 255], [255, 255, 255], rnd() * 0.5);
+      pos.push(x, y, z); col.push(c[0] / 255 * tint, c[1] / 255 * tint, c[2] / 255 * tint); size.push((1.0 + rnd() * 1.1) * (0.6 + b * 1.1)); seedA.push(rnd());
     }
     return skyPoints(pos, col, size, seedA, 0.85, true);
   })();
-  L0.in.add(facePts); reg(L0, facePts.material, 0.4); track(facePts);
+  L0.in.add(facePts); reg(L0, facePts.material, 0.72); track(facePts);
 
   /* ===== LEVEL 1: the solar system ===== */
   var L1 = makeLayer(1), sysG = new THREE.Group(); sysG.rotation.set(0.95, 0, 0.06); L1.in.add(sysG);
@@ -1514,11 +1514,11 @@ window.CONTACT = { email: 'dimariowray.dev@gmail.com', endpoint: 'https://formsp
 
 <!-- ===== FX layer: nebula colour, warp streaks on scroll, arrival pulses, shooting stars, vignette and grain ===== -->
 <style>
-  #fxneb { position: fixed; inset: -12%; z-index: 1; pointer-events: none; opacity: .62; mix-blend-mode: screen; transition: opacity 1.2s; }
+  #fxneb { position: fixed; inset: -12%; z-index: 1; pointer-events: none; opacity: .34; mix-blend-mode: screen; transition: opacity 1.2s; }
   #fxneb i { position: absolute; border-radius: 50%; will-change: transform; }
-  #fxneb i:nth-child(1) { left: 2%; top: 4%; width: 54vw; height: 54vw; background: radial-gradient(circle, rgba(var(--acc-rgb), .30), rgba(var(--acc-rgb), .08) 45%, transparent 68%); animation: fxnebA 36s ease-in-out infinite alternate; }
-  #fxneb i:nth-child(2) { right: 0; bottom: 0; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(var(--acc2-rgb), .26), rgba(var(--acc2-rgb), .07) 45%, transparent 68%); animation: fxnebB 44s ease-in-out infinite alternate; }
-  #fxneb i:nth-child(3) { left: 38%; top: 40%; width: 34vw; height: 34vw; background: radial-gradient(circle, rgba(53, 224, 255, .14), transparent 66%); animation: fxnebA 52s ease-in-out infinite alternate-reverse; }
+  #fxneb i:nth-child(1) { left: 2%; top: 4%; width: 40vw; height: 40vw; background: radial-gradient(circle, rgba(var(--acc-rgb), .22), rgba(var(--acc-rgb), .05) 45%, transparent 68%); animation: fxnebA 36s ease-in-out infinite alternate; }
+  #fxneb i:nth-child(2) { right: 0; bottom: 0; width: 44vw; height: 44vw; background: radial-gradient(circle, rgba(var(--acc2-rgb), .18), rgba(var(--acc2-rgb), .04) 45%, transparent 68%); animation: fxnebB 44s ease-in-out infinite alternate; }
+  #fxneb i:nth-child(3) { left: 38%; top: 40%; width: 24vw; height: 24vw; background: radial-gradient(circle, rgba(53, 224, 255, .09), transparent 66%); animation: fxnebA 52s ease-in-out infinite alternate-reverse; }
   @keyframes fxnebA { to { transform: translate3d(9vw, 7vh, 0) scale(1.18); } }
   @keyframes fxnebB { to { transform: translate3d(-10vw, -8vh, 0) scale(1.14); } }
   html.cf #fxneb { opacity: .16; }
