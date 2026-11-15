@@ -20,7 +20,7 @@
 <style>
   :root {
     color-scheme: dark;
-    --bg: #02040a; --cyan: rgb(var(--acc-rgb)); --acc-rgb: 60,255,120; --acc2-rgb: 190,120,255; --violet: rgb(var(--acc2-rgb)); --mint: #3cff78;
+    --bg: #02040a; --cyan: rgb(var(--acc-rgb)); --acc-rgb: 128,150,255; --acc2-rgb: 190,120,255; --violet: rgb(var(--acc2-rgb)); --mint: #35e0ff;
     --text: #e8f7ff; --muted: #8fb3c4; --line: rgba(var(--acc-rgb), .22);
     --panel: rgba(4, 14, 28, .55);
     --sv: 0; --spin: 0;
@@ -512,8 +512,8 @@
   .hero h1, .hero h1 .row { text-align: center; } .hero h1 { font-size: clamp(2.6rem, min(8.2vw, 13vh), 8.4rem); }
   .hero .sub { text-align: center; margin-top: 20px; } .hero .sub b { margin: 0 .35em; }
 
-  /* ===================== one palette: ice white, neon green, violet ===================== */
-  :root { --acc-rgb: 60,255,120; --acc2-rgb: 138,107,255; --mint: #3cff78; --text: #e8f7ff; }
+  /* ===================== one palette: ice white, cyan, violet ===================== */
+  :root { --acc-rgb: 53,224,255; --acc2-rgb: 138,107,255; --mint: #35e0ff; --text: #e8f7ff; }
   /* the name must be the clearest thing on the opening screen */
   .hero { position: relative; isolation: isolate; }
   .hero::before { content: ""; position: absolute; z-index: -1; left: 50%; top: 50%; width: min(1200px, 96vw); height: 62vh; transform: translate(-50%, -50%); pointer-events: none; background: radial-gradient(ellipse at center, rgba(2,4,12,.6) 0%, rgba(2,4,12,.38) 40%, rgba(2,4,12,0) 70%); }
@@ -885,12 +885,12 @@ window.__boot = function () {
 
   /* ================= INFINITE ZOOM: SCENE ================= */
   var LEVELS = [
-    { id: 'top',        name: 'The Milky Way', sci: '10²¹ m', fact: 'About 100,000 light-years across.',              sx: 0,     sy: 0,     acc: [60, 255, 120], acc2: [138, 107, 255] },
-    { id: 'about',      name: 'Solar system',  sci: '10¹³ m', fact: 'One star and eight planets, all in one view.',                 sx: 0.24,  sy: 0,     acc: [60, 255, 120], acc2: [138, 107, 255] },
-    { id: 'work',       name: 'Planet Earth',  sci: '10⁷ m',  fact: 'Each tool here was built to fix a real office headache.',          sx: 0.29,  sy: 0,     acc: [60, 255, 120], acc2: [138, 107, 255] },
-    { id: 'process',    name: 'Jamaica',       sci: '10⁵ m',  fact: 'Jamaica is about 235 km long.', sx: 0.24,  sy: 0,     acc: [60, 255, 120], acc2: [138, 107, 255] },
-    { id: 'principles', name: 'The workflow',  sci: '10² m',  fact: 'Tangled work, straightened out.',           sx: 0,     sy: 0,     acc: [60, 255, 120], acc2: [138, 107, 255] },
-    { id: 'contact',    name: 'The screen',    sci: '10⁻¹ m', fact: 'Zoom in far enough and the frames never end.',         sx: 0,     sy: 0,     acc: [60, 255, 120], acc2: [138, 107, 255] }
+    { id: 'top',        name: 'The Milky Way', sci: '10²¹ m', fact: 'About 100,000 light-years across.',              sx: 0,     sy: 0,     acc: [53, 224, 255], acc2: [138, 107, 255] },
+    { id: 'about',      name: 'Solar system',  sci: '10¹³ m', fact: 'One star and eight planets, all in one view.',                 sx: 0.24,  sy: 0,     acc: [53, 224, 255], acc2: [138, 107, 255] },
+    { id: 'work',       name: 'Planet Earth',  sci: '10⁷ m',  fact: 'Each tool here was built to fix a real office headache.',          sx: 0.29,  sy: 0,     acc: [53, 224, 255], acc2: [138, 107, 255] },
+    { id: 'process',    name: 'Jamaica',       sci: '10⁵ m',  fact: 'Jamaica is about 235 km long.', sx: 0.24,  sy: 0,     acc: [53, 224, 255], acc2: [138, 107, 255] },
+    { id: 'principles', name: 'The workflow',  sci: '10² m',  fact: 'Tangled work, straightened out.',           sx: 0,     sy: 0,     acc: [53, 224, 255], acc2: [138, 107, 255] },
+    { id: 'contact',    name: 'The screen',    sci: '10⁻¹ m', fact: 'Zoom in far enough and the frames never end.',         sx: 0,     sy: 0,     acc: [53, 224, 255], acc2: [138, 107, 255] }
   ];
   var N = LEVELS.length, KZ = Math.log(40), MOBILE = innerWidth < 760, CAM_D = 13;
   // quality governor: 2 = full, 1 = lighter, 0 = lightest. It steps down by itself if the computer struggles.
@@ -983,15 +983,15 @@ window.__boot = function () {
     for (i = 0; i < NG; i++) {
       var bulge = rnd() < 0.14, x, y, z, c, s;
       if (bulge) { var rb = Math.abs(gauss()) * GR * 0.16, a = rnd() * 6.2832; x = Math.cos(a) * rb; z = Math.sin(a) * rb; y = gauss() * GR * 0.05; c = mixc([200, 235, 255], [240, 250, 255], rnd()); s = 1.1 + rnd() * 1.2; }
-      else { var rr = GR * Math.pow(rnd(), 0.62), arm = Math.floor(rnd() * arms), th = rr / GR * 5.4 + arm * (6.2832 / arms) + gauss() * (0.32 + 0.5 * (rr / GR)); x = Math.cos(th) * rr; z = Math.sin(th) * rr; y = gauss() * 0.13 * (1 - 0.6 * rr / GR); var t = rr / GR; c = mixc([190, 225, 255], [138, 107, 255], clamp(t * 1.25, 0, 1)); if (rnd() > 0.965) c = [60, 255, 120]; s = 0.9 + rnd() * 1.5; }
+      else { var rr = GR * Math.pow(rnd(), 0.62), arm = Math.floor(rnd() * arms), th = rr / GR * 5.4 + arm * (6.2832 / arms) + gauss() * (0.32 + 0.5 * (rr / GR)); x = Math.cos(th) * rr; z = Math.sin(th) * rr; y = gauss() * 0.13 * (1 - 0.6 * rr / GR); var t = rr / GR; c = mixc([190, 225, 255], [138, 107, 255], clamp(t * 1.25, 0, 1)); if (rnd() > 0.965) c = [53, 224, 255]; s = 0.9 + rnd() * 1.5; }
       pos.push(x, y, z); col.push(c[0] / 255, c[1] / 255, c[2] / 255); size.push(s); seedA.push(0);
     }
     return skyPoints(pos, col, size, seedA, 0.9);
   })();
   galG.add(galPts); reg(L0, galPts.material, 0.9); track(galPts);
   addSprite(L0, galG, glowTex([[0, 'rgba(232,247,255,1)'], [0.25, 'rgba(110,190,255,.4)'], [1, 'rgba(138,107,255,0)']]), 0xffffff, 3.2, 0.62);
-  var sunMark = addSprite(L0, L0.in, ringT, 0x3cff78, 0.5, 1); sunMark.visible = false;   // kept out of sight: the hero stays clean
-  var localBubble = addSprite(L0, L0.in, ringT, 0x3cff78, 0.14, 0.7); localBubble.visible = false;   // roughly the size of our whole solar system, from here
+  var sunMark = addSprite(L0, L0.in, ringT, 0x35e0ff, 0.5, 1); sunMark.visible = false;   // kept out of sight: the hero stays clean
+  var localBubble = addSprite(L0, L0.in, ringT, 0x35e0ff, 0.14, 0.7); localBubble.visible = false;   // roughly the size of our whole solar system, from here
 
   /* ===== LEVEL 1: the solar system ===== */
   var L1 = makeLayer(1), sysG = new THREE.Group(); sysG.rotation.set(0.95, 0, 0.06); L1.in.add(sysG);
@@ -1011,7 +1011,7 @@ window.__boot = function () {
   var PL = [
     { n: 'Mercury', r: 0.38, a: 2.1, s: 0.03,  c1: [150, 150, 158], c2: [200, 200, 206], rim: 0xcfcfd8, f: 3 },
     { n: 'Venus',   r: 0.62, a: 4.0, s: 0.06,  c1: [170, 190, 225], c2: [215, 228, 248], rim: 0xcfe6ff, f: 5 },
-    { n: 'Earth',   r: 1.00, a: 0,   s: 0.075, c1: [30, 90, 170],   c2: [70, 170, 210],  rim: 0x3cff78, f: 9 },
+    { n: 'Earth',   r: 1.00, a: 0,   s: 0.075, c1: [30, 90, 170],   c2: [70, 170, 210],  rim: 0x35e0ff, f: 9 },
     { n: 'Mars',    r: 1.50, a: 5.2, s: 0.045, c1: [90, 70, 190],   c2: [150, 130, 240], rim: 0x9d8cff, f: 6 },
     { n: 'Jupiter', r: 2.60, a: 1.1, s: 0.22,  c1: [70, 110, 170],  c2: [200, 225, 250], rim: 0xbfe3ff, f: 34 },
     { n: 'Saturn',  r: 3.70, a: 3.6, s: 0.19,  c1: [120, 150, 210], c2: [215, 235, 252], rim: 0xdcefff, f: 26 },
@@ -1020,7 +1020,7 @@ window.__boot = function () {
   ], planetMeshes = {}, planetMats = [];
   PL.forEach(function (p) {
     var pts = [], i; for (i = 0; i < 240; i++) { var a = i / 240 * 6.2832; pts.push(new THREE.Vector3(SUN_L.x + Math.cos(a) * p.r, 0, Math.sin(a) * p.r)); }
-    var om = new THREE.LineBasicMaterial({ color: 0x3cff78, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false }); reg(L1, om, p.n === 'Earth' ? 0.55 : 0.28); sysG.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), om));
+    var om = new THREE.LineBasicMaterial({ color: 0x35e0ff, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false }); reg(L1, om, p.n === 'Earth' ? 0.55 : 0.28); sysG.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), om));
     var mat = planetMat(bandTex(p.c1, p.c2, p.f, p.a), p.rim, 0.35); reg(L1, mat, 1); planetMats.push(mat);
     var mesh = new THREE.Mesh(new THREE.SphereGeometry(p.s, 36, 26), mat);
     if (p.n === 'Earth') { mesh.position.set(0, 0, -p.s); L1.in.add(mesh); } else { mesh.position.set(SUN_L.x + Math.cos(p.a) * p.r, 0, Math.sin(p.a) * p.r); sysG.add(mesh); }
@@ -1041,7 +1041,7 @@ window.__boot = function () {
     var pos = [], i; for (i = 0; i < (MOBILE ? 900 : 1800); i++) { var a = rnd() * 6.2832, r = 1.85 + rnd() * 0.5; pos.push(SUN_L.x + Math.cos(a) * r, (rnd() - 0.5) * 0.04, Math.sin(a) * r); }
     var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); var m = new THREE.PointsMaterial({ size: 1.3, sizeAttenuation: false, color: 0x9fb4c8, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }); reg(L1, m, 0.6); sysG.add(new THREE.Points(g, m));
   })();
-  var earthRing = addSprite(L1, L1.in, ringT, 0x3cff78, 0.3, 1);   // "you are here" for the next zoom
+  var earthRing = addSprite(L1, L1.in, ringT, 0x35e0ff, 0.3, 1);   // "you are here" for the next zoom
 
   /* ===== LEVEL 2: Planet Earth, built from real continents, with the four tool satellites ===== */
   var L2 = makeLayer(2), earthRoot = new THREE.Group(); earthRoot.position.set(0, 0, -3); earthRoot.scale.setScalar(3); L2.in.add(earthRoot);
@@ -1057,9 +1057,9 @@ window.__boot = function () {
     for (i = -60; i <= 60; i += 30) { var lat = i * Math.PI / 180; for (j = 0; j < seg; j++) { var a1 = j / seg * 6.2832, a2 = (j + 1) / seg * 6.2832; gp.push(RG*Math.cos(lat)*Math.cos(a1), RG*Math.sin(lat), RG*Math.cos(lat)*Math.sin(a1), RG*Math.cos(lat)*Math.cos(a2), RG*Math.sin(lat), RG*Math.cos(lat)*Math.sin(a2)); } }
     for (i = 0; i < 12; i++) { var lon = i / 12 * 6.2832; for (j = 0; j < seg; j++) { var p1 = -Math.PI / 2 + j / seg * Math.PI, p2 = -Math.PI / 2 + (j + 1) / seg * Math.PI; gp.push(RG*Math.cos(p1)*Math.cos(lon), RG*Math.sin(p1), RG*Math.cos(p1)*Math.sin(lon), RG*Math.cos(p2)*Math.cos(lon), RG*Math.sin(p2), RG*Math.cos(p2)*Math.sin(lon)); } }
     var gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(gp, 3));
-    var gm = new THREE.LineBasicMaterial({ color: 0x1bb878, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }); reg(L2, gm, 0.22); earthSpin.add(new THREE.LineSegments(gg, gm));
+    var gm = new THREE.LineBasicMaterial({ color: 0x1b8fb8, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }); reg(L2, gm, 0.22); earthSpin.add(new THREE.LineSegments(gg, gm));
     var NE = MOBILE ? 30000 : 52000, golden = Math.PI * (3 - Math.sqrt(5)), landPos = [], landCol = [], oceanPos = [], landVecs = [];
-    var cyan = new THREE.Color(0x3cff78), teal = new THREE.Color(0x1fd97a), violet = new THREE.Color(0x8a6bff), white = new THREE.Color(0xc8f6ff);
+    var cyan = new THREE.Color(0x35e0ff), teal = new THREE.Color(0x1fb5c9), violet = new THREE.Color(0x8a6bff), white = new THREE.Color(0xc8f6ff);
     for (i = 0; i < NE; i++) {
       var y = 1 - (i / (NE - 1)) * 2, rr = Math.sqrt(1 - y * y), th = golden * i, x = Math.cos(th) * rr, z = Math.sin(th) * rr, la = Math.asin(y) * 180 / Math.PI, lo = Math.atan2(-z, x) * 180 / Math.PI;
       if (isLand(la, lo)) { landPos.push(x * 1.002, y * 1.002, z * 1.002); var c = teal.clone().lerp(cyan, rnd()), r = rnd(); if (r > 0.97) c = white.clone(); else if (r > 0.93) c = violet.clone(); landCol.push(c.r, c.g, c.b); if (r > 0.3) landVecs.push(new THREE.Vector3(x, y, z)); }
@@ -1073,14 +1073,14 @@ window.__boot = function () {
     var jam = ll2v(18.1, -77.3); cities.push(jam); cp.push(jam.x * 1.006, jam.y * 1.006, jam.z * 1.006);
     var cg = new THREE.BufferGeometry(); cg.setAttribute('position', new THREE.Float32BufferAttribute(cp, 3)); earthSpin.add(earthPoints(cg, 0.06, 0xffffff, false, 1));
     var arcs = [], al = [], A, B; for (i = 0; i < 40; i++) { A = cities[Math.floor(rnd() * cities.length)]; B = cities[Math.floor(rnd() * cities.length)]; var d = A.distanceTo(B); if (A === B || d < 0.5) continue; var mid = A.clone().add(B).multiplyScalar(0.5).normalize().multiplyScalar(1 + d * 0.38), cu = new THREE.QuadraticBezierCurve3(A.clone().multiplyScalar(1.006), mid, B.clone().multiplyScalar(1.006)), pp = cu.getPoints(40); for (j = 0; j < pp.length - 1; j++) al.push(pp[j].x, pp[j].y, pp[j].z, pp[j+1].x, pp[j+1].y, pp[j+1].z); arcs.push({ cu: cu, t: rnd(), sp: 0.12 + rnd() * 0.2 }); }
-    var ag = new THREE.BufferGeometry(); ag.setAttribute('position', new THREE.Float32BufferAttribute(al, 3)); var am = new THREE.LineBasicMaterial({ color: 0x2aff8a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }); reg(L2, am, 0.28); earthSpin.add(new THREE.LineSegments(ag, am));
+    var ag = new THREE.BufferGeometry(); ag.setAttribute('position', new THREE.Float32BufferAttribute(al, 3)); var am = new THREE.LineBasicMaterial({ color: 0x2ad4ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }); reg(L2, am, 0.28); earthSpin.add(new THREE.LineSegments(ag, am));
     var parr = new Float32Array(arcs.length * 3), pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(parr, 3)); earthSpin.add(earthPoints(pg, 0.05, 0xe8f7ff, false, 1));
     window.__arcs = { arcs: arcs, parr: parr, pg: pg };
   })();
   // Jamaica marker on the surface: the thing the next zoom dives into
-  var JAM_DIR = ll2v(18.1, -77.3), jamPin = addSprite(L2, earthSpin, ringT, 0x3cff78, 0.16, 1); jamPin.position.copy(JAM_DIR.clone().multiplyScalar(1.01));
+  var JAM_DIR = ll2v(18.1, -77.3), jamPin = addSprite(L2, earthSpin, ringT, 0x35e0ff, 0.16, 1); jamPin.position.copy(JAM_DIR.clone().multiplyScalar(1.01));
   // satellites: four tools plus a few decorative ones
-  var sats = [], TOOLS = [['Setwork', 'setwork', 0x3cff78, 1.34, 0.5, 0.0, 0.40], ['Inventoria', 'inventoria', 0x8a6bff, 1.48, -0.8, 1.4, -0.32], ['Transcripta', 'transcripta', 0x3cff78, 1.64, 1.2, 2.6, 0.26], ['LetterForge', 'letterforge', 0xe8f7ff, 1.8, -0.3, 3.9, -0.2]];
+  var sats = [], TOOLS = [['Setwork', 'setwork', 0x35e0ff, 1.34, 0.5, 0.0, 0.40], ['Inventoria', 'inventoria', 0x8a6bff, 1.48, -0.8, 1.4, -0.32], ['Transcripta', 'transcripta', 0x35e0ff, 1.64, 1.2, 2.6, 0.26], ['LetterForge', 'letterforge', 0xe8f7ff, 1.8, -0.3, 3.9, -0.2]];
   TOOLS.forEach(function (t, idx) {
     var holder = new THREE.Group(); holder.rotation.x = t[4]; holder.rotation.y = t[5]; earthSpin.add(holder);
     var pts = [], k; for (k = 0; k <= 128; k++) { var an = k / 128 * 6.2832; pts.push(new THREE.Vector3(Math.cos(an) * t[3], 0, Math.sin(an) * t[3])); }
@@ -1088,7 +1088,7 @@ window.__boot = function () {
     var body = new THREE.Group(), mm = new THREE.MeshBasicMaterial({ color: t[2], wireframe: true, transparent: true }); reg(L2, mm, 1); var mesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.06, 0), mm); body.add(mesh); addSprite(L2, body, dotTex, t[2], 0.34, 1); holder.add(body);
     sats.push({ body: body, mesh: mesh, r: t[3], speed: t[6], phase: idx * 1.6, name: t[0], demo: t[1] });
   });
-  [[1.22, 0.9, 0.3, 0.3, 0x3cff78], [1.56, -1.1, 2.0, -0.24, 0x8a6bff], [1.9, 0.2, 4.4, 0.18, 0x3cff78]].forEach(function (o, i2) {
+  [[1.22, 0.9, 0.3, 0.3, 0x35e0ff], [1.56, -1.1, 2.0, -0.24, 0x8a6bff], [1.9, 0.2, 4.4, 0.18, 0x35e0ff]].forEach(function (o, i2) {
     var holder = new THREE.Group(); holder.rotation.x = o[1]; holder.rotation.y = o[2]; earthSpin.add(holder); var body = new THREE.Group(); body.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.035, 0), (function () { var m = new THREE.MeshBasicMaterial({ color: o[4], wireframe: true, transparent: true }); reg(L2, m, 0.8); return m; })())); holder.add(body); sats.push({ body: body, r: o[0], speed: o[3], phase: i2 * 2.1 });
   });
   var earthQ = new THREE.Quaternion(), focusQ = new THREE.Quaternion().setFromUnitVectors(JAM_DIR, new THREE.Vector3(0, 0, 1)), userEuler = new THREE.Euler(0.25, 2.1, 0, 'YXZ');
@@ -1110,13 +1110,13 @@ window.__boot = function () {
     var lp = skyPoints(pos2, col2, size2, seed2, 1); lp.renderOrder = 31; track(lp); L3.in.add(lp); reg(L3, lp.material, 1); timeMats.push(lp.material);
     var sea = skyPoints(sp, scol, ssz, sseed, 1); sea.renderOrder = 30; L3.in.add(sea); reg(L3, sea.material, 0.7); timeMats.push(sea.material);
     var gl = [], deg; for (deg = -78.5; deg <= -76.0; deg += 0.25) { var x0 = (deg + 77.25) * UPD; gl.push(x0, (17.6 - 18.1) * UPD, 0, x0, (18.75 - 18.1) * UPD, 0); } for (deg = 17.6; deg <= 18.75; deg += 0.25) { var y0 = (deg - 18.1) * UPD; gl.push((-78.5 + 77.25) * UPD, y0, 0, (-76.0 + 77.25) * UPD, y0, 0); }
-    var gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(gl, 3)); var gm = new THREE.LineBasicMaterial({ color: 0x3cff78, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }); reg(L3, gm, 0.14); L3.in.add(new THREE.LineSegments(gg, gm));
+    var gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(gl, 3)); var gm = new THREE.LineBasicMaterial({ color: 0x35e0ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }); reg(L3, gm, 0.14); L3.in.add(new THREE.LineSegments(gg, gm));
   })();
-  var pinObjs = []; (function () { var sorted = jamLand.slice().sort(function (a, b) { return a[0] - b[0]; }); [0.08, 0.3, 0.52, 0.74, 0.92].forEach(function (q) { var pt = sorted[Math.floor(q * (sorted.length - 1))], g = new THREE.Group(); g.position.set(pt[0], pt[1], 0); L3.in.add(g); addSprite(L3, g, dotTex, 0x3cff78, 0.5, 1); addSprite(L3, g, ringT, 0x3cff78, 0.7, 0.9); pinObjs.push(g); }); })();
-  var centerRing = addSprite(L3, L3.in, ringT, 0x3cff78, 0.45, 1);
+  var pinObjs = []; (function () { var sorted = jamLand.slice().sort(function (a, b) { return a[0] - b[0]; }); [0.08, 0.3, 0.52, 0.74, 0.92].forEach(function (q) { var pt = sorted[Math.floor(q * (sorted.length - 1))], g = new THREE.Group(); g.position.set(pt[0], pt[1], 0); L3.in.add(g); addSprite(L3, g, dotTex, 0x35e0ff, 0.5, 1); addSprite(L3, g, ringT, 0x35e0ff, 0.7, 0.9); pinObjs.push(g); }); })();
+  var centerRing = addSprite(L3, L3.in, ringT, 0x35e0ff, 0.45, 1);
 
   /* ===== LEVEL 4: the workflow: a tangled network that straightens out ===== */
-  var L4 = makeLayer(4), netUniform = { uOrder: { value: 0 }, time: { value: 0 }, uFade: { value: 1 }, pr: { value: PXR }, uAcc: { value: new THREE.Color(0x3cff78) } };
+  var L4 = makeLayer(4), netUniform = { uOrder: { value: 0 }, time: { value: 0 }, uFade: { value: 1 }, pr: { value: PXR }, uAcc: { value: new THREE.Color(0x35e0ff) } };
   (function () {
     var cols = 18, rows = 11, n = cols * rows, chaos = [], ord = [], i, j;
     for (j = 0; j < rows; j++) for (i = 0; i < cols; i++) { ord.push((i - (cols - 1) / 2) * 0.66, (j - (rows - 1) / 2) * 0.58, 0); var a = rnd() * 6.2832, r = Math.sqrt(rnd()) * 5.2; chaos.push(Math.cos(a) * r * 1.35, Math.sin(a) * r * 0.8, (rnd() - 0.5) * 3); }
@@ -1133,7 +1133,7 @@ window.__boot = function () {
 
   var L5 = makeLayer(5);   // level 5 is drawn by the full-screen shader below
   /* ===== LEVEL 5: the screen: frames inside frames, forever (drawn behind everything) ===== */
-  var bgUniforms = { uAsp: { value: 1 }, uZ: { value: 0 }, uFade: { value: 0 }, time: { value: 0 }, uC1: { value: new THREE.Color(0x3cff78) }, uC2: { value: new THREE.Color(0x8a6bff) } };
+  var bgUniforms = { uAsp: { value: 1 }, uZ: { value: 0 }, uFade: { value: 0 }, time: { value: 0 }, uC1: { value: new THREE.Color(0x35e0ff) }, uC2: { value: new THREE.Color(0x8a6bff) } };
   bgScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({ uniforms: bgUniforms, depthTest: false, depthWrite: false, transparent: true, blending: THREE.AdditiveBlending,
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
     fragmentShader: 'uniform float uAsp; uniform float uZ; uniform float uFade; uniform float time; uniform vec3 uC1; uniform vec3 uC2; varying vec2 vUv;' +
@@ -1489,7 +1489,7 @@ window.CONTACT = { email: 'dimariowray.dev@gmail.com', endpoint: 'https://formsp
   #fxneb i { position: absolute; border-radius: 50%; will-change: transform; }
   #fxneb i:nth-child(1) { left: 2%; top: 4%; width: 40vw; height: 40vw; background: radial-gradient(circle, rgba(var(--acc-rgb), .22), rgba(var(--acc-rgb), .05) 45%, transparent 68%); animation: fxnebA 36s ease-in-out infinite alternate; }
   #fxneb i:nth-child(2) { right: 0; bottom: 0; width: 44vw; height: 44vw; background: radial-gradient(circle, rgba(var(--acc2-rgb), .18), rgba(var(--acc2-rgb), .04) 45%, transparent 68%); animation: fxnebB 44s ease-in-out infinite alternate; }
-  #fxneb i:nth-child(3) { left: 38%; top: 40%; width: 24vw; height: 24vw; background: radial-gradient(circle, rgba(60, 255, 120, .09), transparent 66%); animation: fxnebA 52s ease-in-out infinite alternate-reverse; }
+  #fxneb i:nth-child(3) { left: 38%; top: 40%; width: 24vw; height: 24vw; background: radial-gradient(circle, rgba(53, 224, 255, .09), transparent 66%); animation: fxnebA 52s ease-in-out infinite alternate-reverse; }
   @keyframes fxnebA { to { transform: translate3d(9vw, 7vh, 0) scale(1.18); } }
   @keyframes fxnebB { to { transform: translate3d(-10vw, -8vh, 0) scale(1.14); } }
   html.cf #fxneb { opacity: .16; }
