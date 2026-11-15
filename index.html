@@ -995,22 +995,25 @@ window.__boot = function () {
 
   /* ---- a face, sketched very vaguely into the stars: brighter where a soft portrait would catch the light, darker at the eyes. Camera-facing, so it reads correctly no matter how the galaxy is dragged. ---- */
   function faceLight(u, v) {
-    var hx = u / 0.6, hy = v / 0.82, headD = hx * hx + hy * hy; if (headD > 1.2) return 0;
-    var edge = ss(1.2, 0.55, headD), b = 0.34;
+    var taper = clamp((0.25 - v) / 0.95, 0, 1), wScale = 0.6 - 0.22 * taper;
+    var hx = u / wScale, hy = v / 0.85, headD = hx * hx + hy * hy; if (headD > 1.15) return 0;
+    var edge = ss(1.15, 0.62, headD), b = 0.1;
     function bump(cx, cy, sx, sy) { var dx = (u - cx) / sx, dy = (v - cy) / sy; return Math.exp(-(dx * dx + dy * dy)); }
-    b += 0.46 * bump(0, 0.24, 0.4, 0.38);
-    b += 0.2 * bump(0, -0.52, 0.32, 0.2);
-    b -= 0.5 * bump(-0.23, 0.08, 0.1, 0.085);
-    b -= 0.5 * bump(0.23, 0.08, 0.1, 0.085);
-    b += 0.3 * bump(0, 0.03, 0.05, 0.32);
-    b -= 0.22 * bump(0, -0.27, 0.16, 0.07);
-    b += 0.14 * bump(0, -0.39, 0.2, 0.05);
-    b -= 0.18 * bump(-0.4, -0.08, 0.14, 0.3);
-    b -= 0.18 * bump(0.4, -0.08, 0.14, 0.3);
+    b -= 0.16 * bump(0, 0.68, 0.5, 0.12);       // hairline shadow, top of head
+    b += 0.22 * bump(0, 0.42, 0.4, 0.2);        // forehead, kept clear of the eye line
+    b -= 0.5 * bump(-0.22, 0.08, 0.095, 0.075); // left eye socket
+    b -= 0.5 * bump(0.22, 0.08, 0.095, 0.075);  // right eye socket
+    b += 0.26 * bump(0, 0.08, 0.05, 0.3);       // nose bridge
+    b += 0.28 * bump(-0.33, -0.15, 0.12, 0.15); // left cheekbone, clear of the eye
+    b += 0.28 * bump(0.33, -0.15, 0.12, 0.15);  // right cheekbone, clear of the eye
+    b -= 0.2 * bump(0, -0.32, 0.17, 0.06);      // mouth shadow
+    b += 0.16 * bump(0, -0.46, 0.18, 0.045);    // chin highlight
+    b -= 0.24 * bump(-0.42, -0.26, 0.11, 0.2);  // left jaw contour
+    b -= 0.24 * bump(0.42, -0.26, 0.11, 0.2);   // right jaw contour
     return clamp(b, 0, 1) * edge;
   }
   var facePts = (function () {
-    var HW = 1.5, HH = 2.0, want = MOBILE ? 1700 : 3600, tries = want * 9, got = 0, pos = [], col = [], size = [], seedA = [];
+    var HW = 1.5, HH = 2.0, want = MOBILE ? 1700 : 3600, tries = want * 24, got = 0, pos = [], col = [], size = [], seedA = [];
     for (var i = 0; i < tries && got < want; i++) {
       var u = rnd() * 2 - 1, v = rnd() * 2 - 1, b = faceLight(u, v);
       if (b <= 0.015 || rnd() > b) continue;
