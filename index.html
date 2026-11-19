@@ -749,27 +749,30 @@
   }, { passive: true });
   onScroll();
 
-  // The physics box. It lives in page coordinates and sits at rest on a
-  // "ledge" -- the top edge of a heading, a chip, the photo, a card...
-  //  - Scroll DOWN pushes it along its ledge, tumbling, until it rolls off the
-  //    edge and drops onto the next thing below. Friction kills its momentum
-  //    when it lands, so it never cascades on its own: you scroll, it moves.
-  //  - Scroll UP flicks it from underneath: it jumps exactly hard enough to
-  //    clear the ledge above and land on it -- gravity still always points
-  //    down, it just gets a real kick. Scroll up and it climbs back.
-  //  - Near the very end it drops onto the big DIMARIO and stays.
+  // The physics box. Plain mechanics, no shortcuts: it lives in page
+  // coordinates and rests on a "ledge" (the top of a line of text, a chip,
+  // the photo, a card...). Nothing moves it except forces:
+  //  - scroll DOWN = a shove along its ledge. It tumbles, rolls off the edge
+  //    and free-falls (constant sideways speed, constant gravity) onto
+  //    whatever is underneath, bounces a little, slides to a stop.
+  //  - scroll UP = a kick from below. It jumps -- one flip -- onto the ledge
+  //    above it. Gravity always points down; it climbs by jumping.
+  // Physics runs on a fixed 60Hz step so every arc is smooth and repeatable.
   var gBox = document.querySelector('.gravity-box');
   if (gBox) {
-    var LEDGES = '.brkt, .hero-left h1, .role, .now .label, .hero-photo, .lead, .hero-right .btn, .eyebrow, section h2, .skill-col h3, .skill-col .desc, .chip, .folder, .folder .meta, .tl .seg .badge, .tl .seg .when, .tl .seg h4, .contact h2, .field, #cform .btn, .brandcol b, .ghost, .foot-legal';
+    var LEDGES = '.foot-see, .brkt, .hero-left h1, .role, .now .label, .hero-photo, .lead, .hero-right .btn, .eyebrow, section h2, .skill-col h3, .skill-col .desc, .chip, .folder, .folder .meta, .tl .seg .badge, .tl .seg .when, .tl .seg h4, .field, #cform .btn, .brandcol b, .ghost, .foot-legal';
     var TEXTY = '.brkt, h1, h2, h3, h4, .role, .lead, .eyebrow, .desc, .meta, .when, .label, .brandcol b, .ghost';
     var ghostEl = document.querySelector('.name-wrap .ghost');
     var rng = document.createRange();
     var BW = 12, BH = 22, ROLL = 360 / 68;
-    var G = 0.55, FRICTION = 0.9, RAD = Math.PI / 180;
-
+    var G = 0.5, FRICTION = 0.9, DRAG = 0.985, RAD = Math.PI / 180;
+    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
     function measureBox() { BW = gBox.offsetWidth || 12; BH = gBox.offsetHeight || 22; ROLL = 360 / (2 * (BW + BH)); }
-    // a text range's box starts at the font's ascent line, well above the
-    // tops of the capitals -- move the ledge down onto the actual ink
+
+    // the top of the FIRST line of ink only: a paragraph's bounding box is as
+    // wide as its longest line, which would leave the box standing on air
+    // beside a short first line; and a text box starts at the font's ascent
+    // line, well above the capitals, so move it down onto the letters
     function inkOffset(el) {
       var w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), n;
       while ((n = w.nextNode()) && !n.nodeValue.trim()) {}
@@ -777,216 +780,205 @@
       return fs * (el.classList.contains('brkt') ? 0.36 : 0.18);
     }
     function ledgeOf(el) {
-      if (!el) { var d = document.documentElement; return { el: null, y: d.scrollHeight, l: 0, r: d.clientWidth, w: d.clientWidth, h: 1 }; }
-      var r, off = 0;
-      if (el.matches(TEXTY)) { rng.selectNodeContents(el); r = rng.getBoundingClientRect(); off = inkOffset(el); }
-      else r = el.getBoundingClientRect();
-      return { el: el, y: r.top + off + scrollY, l: r.left + scrollX, r: r.right + scrollX, w: r.width, h: r.height };
+      if (!el) { var d = document.documentElement; return { el: null, y: d.scrollHeight, l: 0, r: d.clientWidth }; }
+      var top, l, r, h;
+      if (el.matches(TEXTY)) {
+        rng.selectNodeContents(el);
+        var rs = rng.getClientRects(), i;
+        top = Infinity;
+        for (i = 0; i < rs.length; i++) if (rs[i].width > 1 && rs[i].top < top) top = rs[i].top;
+        l = Infinity; r = -Infinity;
+        for (i = 0; i < rs.length; i++) if (rs[i].width > 1 && rs[i].top < top + 4) { l = Math.min(l, rs[i].left); r = Math.max(r, rs[i].right); }
+        if (top === Infinity) return null;
+        h = 10; top += inkOffset(el);
+      } else {
+        var b = el.getBoundingClientRect(); top = b.top; l = b.left; r = b.right; h = b.height;
+      }
+      // only the part that's actually on the page (the big DIMARIO overflows
+      // its clipped wrapper on phones)
+      var cw = document.documentElement.clientWidth;
+      l = Math.max(l, 0); r = Math.min(r, cw);
+      if (r - l < 6 || h < 2) return null;
+      return { el: el, y: top + scrollY, l: l + scrollX, r: r + scrollX };
     }
     function allLedges() {
       var out = [];
       document.querySelectorAll(LEDGES).forEach(function (el) {
-        if (el.closest('.rv:not(.go), .rv-stag:not(.go)')) return; // not revealed yet: invisible
-        var L = ledgeOf(el);
-        if (L.w > 6 && L.h > 2) out.push(L);
+        // (things not revealed yet still count: they're solid, just not faded
+        // in -- otherwise the box would drop straight through to the footer)
+        var L = ledgeOf(el); if (L) out.push(L);
       });
+      out.push(ledgeOf(null));
       return out;
     }
     function halfH(a) { return Math.abs(BH / 2 * Math.cos(a * RAD)) + Math.abs(BW / 2 * Math.sin(a * RAD)); }
     function halfW(a) { return Math.abs(BW / 2 * Math.cos(a * RAD)) + Math.abs(BH / 2 * Math.sin(a * RAD)); }
-    function viewTop() { return scrollY + innerHeight * 0.05; }
-    function viewBot() { return scrollY + innerHeight * 0.97; }
-    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
-    var s = { x: 0, y: 0, vx: 0, vy: 0, a: 0, w: 0, mode: 'rest', el: null, frac: .8, dir: 1, target: null, endRun: false };
+    var s = { x: 0, y: 0, vx: 0, vy: 0, a: 0, w: 0, mode: 'rest', el: null, frac: .8, dir: 1, target: null };
+    gBox._s = s;
 
     function render() {
-      gBox.style.transform = 'translate(' + (s.x - BW / 2).toFixed(1) + 'px,' + (s.y - BH / 2).toFixed(1) + 'px) rotate(' + s.a.toFixed(1) + 'deg)';
+      gBox.style.transform = 'translate(' + (s.x - BW / 2).toFixed(2) + 'px,' + (s.y - BH / 2).toFixed(2) + 'px) rotate(' + s.a.toFixed(2) + 'deg)';
     }
-    function sitOn(el, frac) {
-      var L = ledgeOf(el);
-      s.el = el; s.frac = frac;
-      s.x = L.l + frac * (L.r - L.l); s.y = L.y - halfH(s.a);
+    function glue() { // at rest: ride along with the ledge (parallax, reveals, resizes)
+      var L = ledgeOf(s.el); if (!L) return;
+      s.x = clamp(L.l + s.frac * (L.r - L.l), L.l + 1, L.r - 1); s.y = L.y - halfH(s.a);
       render();
     }
-    function aimInto(L) { var m = halfW(s.a) + 4; return L.r - L.l > 2 * m ? clamp(s.x, L.l + m, L.r - m) : (L.l + L.r) / 2; }
 
-    // launch a ballistic arc from where it is now, with vertical speed vy0,
-    // timed so it comes down at aimX on ledge L
-    function launchAt(L, vy0) {
-      var bottom = s.y + halfH(s.a), dy = L.y - bottom;
-      var disc = vy0 * vy0 + 2 * G * dy;
-      var t = disc > 0 ? (-vy0 + Math.sqrt(disc)) / G : 20;
-      s.target = L.el; s.mode = 'fall'; s.vy = vy0; s.aimX = aimInto(L);
-      s.vx = clamp((s.aimX - s.x) / Math.max(t, 6), -12, 12);
-    }
-    // the nearest visible thing below to land on -- close in height wins,
-    // with a mild preference for not having to travel far sideways
-    function ledgeBelow(fromY, nearX, catchUp) {
-      var best = null, bs = Infinity, lo = Math.max(fromY + 6, viewTop()), hi = viewBot();
-      var line = scrollY + innerHeight * 0.45;
-      allLedges().forEach(function (L) {
-        if (L.el === s.el || L.y < lo || L.y > hi) return;
-        var dx = nearX < L.l ? L.l - nearX : nearX > L.r ? nearX - L.r : 0;
-        // catching up with a reader who scrolled ahead: aim for the middle of
-        // the screen rather than the first thing in view, so it stays visible
-        var sc = catchUp ? Math.abs(L.y - line) + dx * 0.4 : (L.y - fromY) + dx * 0.7;
-        if (sc < bs) { bs = sc; best = L; }
-      });
-      return best;
-    }
-    function ledgeAbove(fromY, nearX, anyHeight) {
-      var best = null, bs = Infinity, lo = viewTop(), maxRise = 1e9, line = scrollY + innerHeight * 0.4;
-      allLedges().forEach(function (L) {
-        if (L.el === s.el || L.y < lo || L.y > fromY - 14 || fromY - L.y > maxRise) return;
-        var dx = nearX < L.l ? L.l - nearX : nearX > L.r ? nearX - L.r : 0;
-        // the reader is heading up: if the box is low on the screen (or below
-        // it), jump for something near the upper-middle so it keeps pace;
-        // if it's already high up, just hop to the next ledge above
-        var sc = fromY > line ? Math.abs(L.y - line) + dx * 0.4 : (fromY - L.y) + dx * 0.7;
-        if (sc < bs) { bs = sc; best = L; }
-      });
-      return best;
-    }
-    function fallFromHere(catchUp) {
-      var L = ledgeBelow(s.y + halfH(s.a), s.x, catchUp);
-      s.w = s.w || (s.dir || 1) * 3;
-      if (L) launchAt(L, s.vy || 0); else { s.target = null; s.mode = 'fall'; }
-    }
-    function chooseDir(L) { // roll off the edge that has something to land on
-      var reach = halfW(s.a) + 20;
-      var r = ledgeBelow(L.y, L.r + reach), l = ledgeBelow(L.y, L.l - reach);
-      var rs = r ? (r.y - L.y) + Math.max(0, r.l - L.r) : Infinity;
-      var ls = l ? (l.y - L.y) + Math.max(0, L.l - l.r) : Infinity;
-      if (rs === ls) return (L.r - s.x) <= (s.x - L.l) ? 1 : -1;
-      return rs < ls ? 1 : -1;
-    }
-    function inEndZone() {
-      return ghostEl && scrollY + innerHeight >= document.documentElement.scrollHeight - innerHeight * 0.3;
-    }
-
-    var running = false, last = 0;
-    function loop(t) {
-      var dt = last ? Math.min((t - last) / 16.67, 3) : 1;
-      last = t;
+    // one fixed 1/60s step
+    function step() {
       var L;
-
       if (s.mode === 'roll') {
         L = ledgeOf(s.el);
-        s.x += s.vx * dt;
-        s.a += s.vx * dt * ROLL;               // tumbling: spin tied to distance
-        s.vx *= Math.pow(FRICTION, dt);
+        if (!L) { s.mode = 'fall'; s.vy = 0; return; }
+        s.x += s.vx;
+        s.a += s.vx * ROLL;                     // tumbling: turn tied to distance
+        s.vx *= FRICTION;
         s.y = L.y - halfH(s.a);
-        if (s.x > L.r || s.x < L.l) {          // over the edge it goes
-          s.w = s.vx * ROLL * 0.8; s.vy = 0; s.vx *= 0.5;
-          fallFromHere();
-        } else if (Math.abs(s.vx) < 0.12) s.mode = 'settle';
+        if (s.x > L.r || s.x < L.l) {           // over the edge: it keeps its
+          s.mode = 'fall'; s.vy = 0;            // speed and its spin, and drops
+          s.w = clamp(s.vx * ROLL * 0.6, -12, 12);
+          // a box tipping off an edge pivots over the corner and drops close
+          // to it -- it doesn't sail away sideways like a ball
+          s.vx = clamp(s.vx * 0.5, -0.6, 0.6);
+        } else if (Math.abs(s.vx) < 0.08) s.mode = 'settle';
+        return;
       }
-      if (s.mode === 'settle') {
+      if (s.mode === 'settle') {                // tip down onto the nearest face
         L = ledgeOf(s.el);
-        var target = Math.round(s.a / 90) * 90;
-        s.a += (target - s.a) * Math.min(1, 0.25 * dt);
+        if (!L) { s.mode = 'fall'; s.vy = 0; return; }
+        var face = Math.round(s.a / 90) * 90;
+        s.a += (face - s.a) * 0.22;
         s.y = L.y - halfH(s.a);
-        if (Math.abs(target - s.a) < 0.4) {
-          s.a = target; s.mode = 'rest'; s.y = L.y - halfH(s.a);
+        if (Math.abs(face - s.a) < 0.3) {
+          s.a = face; s.y = L.y - halfH(s.a); s.mode = 'rest';
           s.frac = L.r - L.l ? clamp((s.x - L.l) / (L.r - L.l), 0, 1) : .5;
         }
+        return;
       }
-      if (s.mode === 'fall') fallStep(dt);
+      if (s.mode === 'fall') {
+        var prevBottom = s.y + halfH(s.a);
+        s.y += s.vy; s.vy = Math.min(s.vy + G, 30);
+        s.vx *= DRAG;                           // a little air drag
+        s.x += s.vx; s.a += s.w;
+        var hw = halfW(s.a), wl = wallL() + hw, wr = wallR() - hw;
+        if (s.x < wl) { s.x = wl; s.vx = Math.abs(s.vx) * 0.5; }
+        if (s.x > wr) { s.x = wr; s.vx = -Math.abs(s.vx) * 0.5; }
+        if (s.vy <= 0) return;                  // still rising: nothing to hit
+        var bottom = s.y + halfH(s.a), hit = null, viewTopY = scrollY + 2;
+        allLedges().forEach(function (M) {
+          // ledges already scrolled off the top of the screen are behind the
+          // reader -- the box passes them and comes into view instead
+          if (M.el && M.el !== s.target && M.y < viewTopY) return;
+          var tol = M.el && M.el === s.target ? hw * 0.8 : 0;
+          if (M.y >= prevBottom - 0.5 && M.y <= bottom && s.x >= M.l - tol && s.x <= M.r + tol && (!hit || M.y < hit.y)) hit = M;
+        });
+        if (!hit) return;
+        s.y = hit.y - halfH(s.a);
+        if (s.vy > 5) {                         // hard landing: bounce
+          s.vy = -s.vy * 0.3; s.vx *= 0.6; s.w *= 0.5;
+        } else {                                // touch down, slide to a stop
+          s.el = hit.el; s.target = null; s.vy = 0; s.w = 0;
+          s.vx = clamp(s.vx * 0.35, -1.2, 1.2);
+          s.mode = 'roll';
+        }
+      }
+    }
+
+    var running = false, last = 0, acc = 0;
+    function loop(t) {
+      acc += last ? Math.min((t - last) / (1000 / 60), 6) : 1;
+      last = t;
+      while (acc >= 1 && s.mode !== 'rest') { step(); acc -= 1; }
       render();
       if (s.mode !== 'rest') requestAnimationFrame(loop);
-      else { running = false; last = 0; }
+      else { running = false; last = 0; acc = 0; }
     }
-    function fallStep(dt) {
-      // sub-step so a slow frame can't tunnel through a ledge or wreck the aim
-      for (var left = dt; left > 0 && s.mode === 'fall'; left -= 1) fallTick(Math.min(1, left));
-    }
-    function fallTick(dt) {
-      {
-        if (s.target) { // keep the arc honest: re-time the sideways drift to the aim point
-          var T = ledgeOf(s.target), bt = s.y + halfH(s.a), disc = s.vy * s.vy + 2 * G * (T.y - bt);
-          if (disc > 0) { var tr = (-s.vy + Math.sqrt(disc)) / G; if (tr > 1) s.vx = clamp((s.aimX - s.x) / tr, -12, 12); }
-        }
-        var prevBottom = s.y + halfH(s.a);
-        s.y += s.vy * dt + 0.5 * G * dt * dt;
-        s.vy = Math.min(s.vy + G * dt, 40);
-        s.x += s.vx * dt; s.a += s.w * dt;
-        var docW = document.documentElement.clientWidth, hw = halfW(s.a);
-        if (s.x < hw) { s.x = hw; s.vx = Math.abs(s.vx) * 0.4; }
-        if (s.x > docW - hw) { s.x = docW - hw; s.vx = -Math.abs(s.vx) * 0.4; }
-        var bottom = s.y + halfH(s.a), hit = null;
-        if (s.vy > 0) {
-          var cands = allLedges(); cands.push(ledgeOf(null));
-          cands.forEach(function (M) {
-            if (M.el && M.y < scrollY + innerHeight * 0.04 && M.el !== s.target) return; // behind the viewer
-            if (s.endRun && M.el && M.el !== ghostEl) return;  // final drop: straight to the name
-            var tol = M.el && M.el === s.target ? 3 : 0;
-            if (M.y >= prevBottom - 1 && M.y <= bottom && s.x >= M.l - tol && s.x <= M.r + tol && (!hit || M.y < hit.y)) hit = M;
-          });
-        }
-        if (hit) {
-          s.y = hit.y - halfH(s.a);
-          s.x = clamp(s.x, hit.l + 1, hit.r - 1);
-          if (s.vy > 7) { s.vy = -s.vy * 0.25; s.vx *= 0.4; s.w *= 0.4; } // hard landing: a little bounce
-          else {
-            s.el = hit.el; s.vy = 0; s.vx = 0; s.w = 0; s.target = null; s.mode = 'settle';
-            if (hit.el === ghostEl) s.endRun = false;
-          }
-        }
-      }
-    }
-    function wake() { if (!running) { running = true; last = 0; requestAnimationFrame(loop); } }
+    function wake() { if (!running) { running = true; last = 0; acc = 0; requestAnimationFrame(loop); } }
 
-    var lastY = scrollY, lastDir = 1;
+    // roll off whichever edge has something closer underneath it
+    function dropBelow(x, fromY) {
+      var best = null;
+      allLedges().forEach(function (M) {
+        if (M.y > fromY + 4 && x >= M.l && x <= M.r && (!best || M.y < best.y)) best = M;
+      });
+      return best ? best.y - fromY : Infinity;
+    }
+    // the page's side gutters are out of bounds: it never wanders into the
+    // empty margins, it stays over the content
+    function wallL() { return 14; }
+    function wallR() { return document.documentElement.clientWidth - 14; }
+    function chooseDir(L) {
+      var reach = halfW(s.a) + 8;
+      var hw = halfW(s.a) + 1;   // where it would end up: the walls catch it
+      var xr = clamp(L.r + reach, wallL() + hw, wallR() - hw), xl = clamp(L.l - reach, wallL() + hw, wallR() - hw);
+      var dr = dropBelow(xr, L.y), dl = dropBelow(xl, L.y);
+      var mid = document.documentElement.clientWidth / 2;
+      if (dr === dl) return dr === Infinity ? (s.x >= mid ? -1 : 1) : ((L.r - s.x) <= (s.x - L.l) ? 1 : -1);
+      return dr < dl ? 1 : -1;
+    }
+
+    // a jump that clears the ledge above and comes down on it: rise to
+    // ~26px over its top, with the sideways speed that arrives at the aim
+    // point exactly as it falls back to the ledge's height
+    function planJump(L) {
+      var bottom = s.y + halfH(s.a), clear = 26;
+      var rise = bottom - L.y + clear;
+      var vy0 = -(Math.sqrt(2 * G * rise) + G / 2);    // discrete-step apex correction
+      var t = -vy0 / G + Math.sqrt(2 * clear / G);
+      var m = halfW(0) + 4;
+      var aimX = L.r - L.l > 2 * m ? clamp(s.x, L.l + m, L.r - m) : (L.l + L.r) / 2;
+      var vx = (aimX - s.x) * (1 - DRAG) / (1 - Math.pow(DRAG, t)); // with air drag
+      return { L: L, vy0: vy0, vx: vx, t: t };
+    }
+    function jump() {
+      var bottom = s.y + halfH(s.a), view = scrollY, vh = innerHeight;
+      var low = bottom - view > vh * 0.55;      // low on screen, or below it
+      var line = view + vh * 0.4, best = null, bs = Infinity;
+      allLedges().forEach(function (L) {
+        if (!L.el || L.el === s.el || L.y > bottom - 12 || L.y < view + vh * 0.04) return;
+        var p = planJump(L);
+        if (Math.abs(p.vx) > 4.5) return;       // too far sideways for a believable jump
+        var sc = low ? Math.abs(L.y - line) : bottom - L.y;
+        sc += Math.abs(p.vx) * 20;              // prefer straight-up jumps
+        if (sc < bs) { bs = sc; best = p; }
+      });
+      var t;
+      if (best) { s.target = best.L.el; s.vy = best.vy0; s.vx = best.vx; t = best.t; }
+      else { s.target = s.el; s.vy = -6.5; s.vx = 0; t = 2 * 6.5 / G; } // nothing above: hop in place
+      s.mode = 'fall';
+      s.w = (Math.random() < .5 ? -1 : 1) * 360 / t;  // exactly one flip in the air
+    }
+
+    var lastY = scrollY;
     addEventListener('scroll', function () {
       var d = scrollY - lastY; lastY = scrollY;
-      if (d) lastDir = d > 0 ? 1 : -1;
-      if (!root.classList.contains('fm') || d === 0 || s.mode === 'fall') return;
-      var hh = halfH(s.a);
+      if (!root.classList.contains('fm') || !d) return;
+      if (s.mode === 'rest') glue();
+      if (s.mode === 'fall') return;           // mid-air: nothing to push against
 
-      if (d < 0) {                              // ---- scroll up: a real jump
-        var below = s.y > viewBot();            // left behind under the screen
-        var up = ledgeAbove(s.y + hh, s.x, below);
-        if (up) {
-          var rise = (s.y + hh) - up.y + 34;    // clear its top by ~34px
-          launchAt(up, -Math.sqrt(2 * G * Math.max(rise, 40)));
-        } else { s.mode = 'fall'; s.target = null; s.vy = -8; s.vx = (Math.random() - .5); }
-        s.w = (s.vx >= 0 ? 1 : -1) * (7 + Math.random() * 4);
-        wake(); return;
-      }
+      if (d < 0) { jump(); wake(); return; }
 
-      // ---- scroll down
       if (s.el === ghostEl) return;            // home: the end of the page
-      if (!s.endRun && inEndZone()) {          // closing stretch: drop to the name
-        s.endRun = true; s.w = 5;
-        launchAt(ledgeOf(ghostEl), -3); wake(); return;
+      // shove harder the further up the screen it's been left, so it keeps
+      // up with the reader -- still just a push, it still has to roll off
+      var screenY = s.y - scrollY, behind = clamp((innerHeight * 0.35 - screenY) / (innerHeight * 0.35), 0, 2);
+      var force = Math.min(d * 0.04, 1.8) * (1 + 1.2 * behind);
+      if (s.mode !== 'roll') {
+        var L = ledgeOf(s.el); if (!L) return;
+        // pick a way once per ledge and stick to it: a shove keeps pushing
+        // the same way, it doesn't wobble back and forth
+        if (s.dirFor !== s.el) { s.dir = chooseDir(L); s.dirFor = s.el; }
+        s.mode = 'roll';
       }
-      if (s.y < viewTop() + innerHeight * 0.05) { // its ledge scrolled out of sight
-        s.vy = 0; s.w = (s.dir || 1) * 3; fallFromHere(true); wake(); return;
-      }
-      if (s.mode !== 'roll') { s.dir = chooseDir(ledgeOf(s.el)); s.mode = 'roll'; }
-      s.vx = clamp(s.vx + s.dir * Math.min(d * 0.05, 2.6), -7, 7);
+      s.vx = clamp(s.vx + s.dir * force, -4.5, 4.5);
       wake();
     }, { passive: true });
 
-    gBox._s = s; // handy for debugging from the console
     measureBox();
-    sitOn(document.querySelector('.hero-photo'), 0.78);
-    // while resting, stay glued to the ledge as fonts/reveals/parallax/resizes
-    // shift the layout under it
-    // ...and never get stranded off-screen: if the reader has scrolled away
-    // from where it's resting, it drops (or jumps) back into view by itself
-    setInterval(function () {
-      if (s.mode !== 'rest' || !root.classList.contains('fm')) { if (s.mode === 'rest') sitOn(s.el, s.frac); return; }
-      measureBox(); sitOn(s.el, s.frac);
-      var hh = halfH(s.a);
-      if (lastDir > 0 && s.y + hh < viewTop() && s.el !== ghostEl) {
-        s.vy = 0; s.w = 3; fallFromHere(true); wake();
-      } else if (lastDir < 0 && s.y - hh > viewBot()) {
-        var up = ledgeAbove(s.y + hh, s.x, true);
-        if (up) { launchAt(up, -Math.sqrt(2 * G * ((s.y + hh) - up.y + 34))); s.w = (s.vx >= 0 ? 1 : -1) * 8; wake(); }
-      }
-    }, 250);
+    s.el = document.querySelector('.hero-photo'); s.frac = 0.78; glue();
+    setInterval(function () { if (s.mode === 'rest') { measureBox(); glue(); } }, 200);
   }
 
   // nav dropdown
