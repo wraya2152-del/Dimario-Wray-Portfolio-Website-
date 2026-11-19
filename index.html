@@ -950,8 +950,13 @@
       var xr = clamp(L.r + reach, wallL() + hw, wallR() - hw), xl = clamp(L.l - reach, wallL() + hw, wallR() - hw);
       var dr = dropBelow(xr, L.y), dl = dropBelow(xl, L.y);
       var mid = document.documentElement.clientWidth / 2;
-      if (dr === dl) return dr === Infinity ? (s.x >= mid ? -1 : 1) : ((L.r - s.x) <= (s.x - L.l) ? 1 : -1);
-      return dr < dl ? 1 : -1;
+      // prefer the edge that keeps it over the middle of the page: an edge
+      // hard against the side of the screen just sends it scraping down the
+      // wall (on a phone most ledges run nearly edge to edge)
+      var sr = (dr === Infinity ? 5000 : dr) + Math.abs(xr - mid) * 0.9 + (L.r > wallR() - 40 ? 800 : 0);
+      var sl = (dl === Infinity ? 5000 : dl) + Math.abs(xl - mid) * 0.9 + (L.l < wallL() + 40 ? 800 : 0);
+      if (sr === sl) return s.x >= mid ? -1 : 1;
+      return sr < sl ? 1 : -1;
     }
 
     // a jump that clears the ledge above and comes down on it: rise to
@@ -963,7 +968,8 @@
       var vy0 = -(Math.sqrt(2 * G * rise) + G / 2);    // discrete-step apex correction
       var t = -vy0 / G + Math.sqrt(2 * clear / G);
       var m = halfW(0) + 4;
-      var aimX = L.r - L.l > 2 * m ? clamp(s.x, L.l + m, L.r - m) : (L.l + L.r) / 2;
+      // land partway toward the middle of the ledge, not on its very edge
+      var aimX = L.r - L.l > 2 * m ? clamp(s.x + ((L.l + L.r) / 2 - s.x) * 0.45, L.l + m, L.r - m) : (L.l + L.r) / 2;
       var vx = (aimX - s.x) * (1 - DRAG) / (1 - Math.pow(DRAG, t)); // with air drag
       return { L: L, vy0: vy0, vx: vx, t: t };
     }
@@ -1015,6 +1021,8 @@
       // it's right there at the edge and falls / jumps into view at once.
       if (d > 0 && s.y + hh < y - 30) {
         if (s.el !== ghostEl) {
+          var cw = document.documentElement.clientWidth;
+          s.x = clamp(s.x, cw * 0.22, cw * 0.78); // re-enter over the content, not down the side
           s.y = y - hh - 2; s.vy = clamp(Math.max(s.mode === 'fall' ? s.vy : 0, d), 3, 30); // keep pace with the flick
           s.vx = 0; s.w = s.w || 4; s.mode = 'fall'; s.target = null; wake();
         }
