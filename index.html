@@ -757,8 +757,18 @@
   // coordinates, so at rest it simply rides along with the page.
   var gBox = document.querySelector('.gravity-box');
   if (gBox) {
-    var LEDGES = '.brkt, .hero-left h1, .role, .hero-photo, .lead, .hero-right .btn, .eyebrow, section h2, .chip, .folder, .tl .seg .when, .field, .foot-see, .brandcol b, .foot-legal';
-    var TEXTY = '.brkt, h1, .role, .lead, .eyebrow, h2, .when, .foot-see, .brandcol b';
+    var LEDGES = '.brkt, .hero-left h1, .role, .hero-photo, .lead, .hero-right .btn, .eyebrow, section h2, .chip, .folder, .tl .seg .when, .field, .brandcol b, .ghost, .foot-legal';
+    var TEXTY = '.brkt, h1, .role, .lead, .eyebrow, h2, .when, .brandcol b, .ghost';
+    var ghostEl = document.querySelector('.name-wrap .ghost');
+    // a text range's box starts at the font's ascent line, which sits well
+    // above the tops of the capitals -- push the ledge down onto the ink so
+    // the box actually touches the letters instead of hovering over them
+    function inkOffset(el) {
+      var w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), n;
+      while ((n = w.nextNode()) && !n.nodeValue.trim()) {}
+      var fs = parseFloat(getComputedStyle(n ? n.parentElement : el).fontSize) || 16;
+      return fs * (el.classList.contains('brkt') ? 0.36 : 0.18);
+    }
     var rng = document.createRange();
     var BW = 12, BH = 22, ROLL = 360 / 68;
     function measureBox() { BW = gBox.offsetWidth || 12; BH = gBox.offsetHeight || 22; ROLL = 360 / (2 * (BW + BH)); }
@@ -768,9 +778,10 @@
         return { el: null, y: d.scrollHeight, l: 0, r: d.clientWidth };
       }
       var r;
-      if (el.matches(TEXTY)) { rng.selectNodeContents(el); r = rng.getBoundingClientRect(); }
+      var off = 0;
+      if (el.matches(TEXTY)) { rng.selectNodeContents(el); r = rng.getBoundingClientRect(); off = inkOffset(el); }
       else r = el.getBoundingClientRect();
-      return { el: el, y: r.top + scrollY, l: r.left + scrollX, r: r.right + scrollX, w: r.width, h: r.height };
+      return { el: el, y: r.top + off + scrollY, l: r.left + scrollX, r: r.right + scrollX, w: r.width, h: r.height };
     }
     function allLedges() {
       var out = [];
@@ -834,6 +845,7 @@
       if (s.mode === 'fall') {
         var prevBottom = s.y + halfH(s.a);
         s.vy = Math.min(s.vy + G * dt, 24);
+        if (s.endRun) s.vx += ((s.gx - s.x) * 0.004 - s.vx * 0.04) * dt; // drift toward the name
         s.x += s.vx * dt; s.y += s.vy * dt; s.a += s.w * dt;
         var hw = halfW(s.a);
         if (s.x < hw) { s.x = hw; s.vx = Math.abs(s.vx) * 0.4; }
@@ -845,6 +857,7 @@
         var minY = scrollY + innerHeight * 0.18;
         allLedges().forEach(function (L) {
           if ((L.el && L.y < minY)) return;
+          if (s.endRun && L.el && L.el !== ghostEl) return; // final drop: straight to the name
           if (L.y >= prevBottom - 1 && L.y <= bottom && s.x >= L.l && s.x <= L.r && (!hit || L.y < hit.y)) hit = L;
         });
         if (hit) {
@@ -853,6 +866,7 @@
             s.vy = -s.vy * 0.28; s.vx *= 0.7; s.w *= 0.5;
           } else {                          // land, then let friction stop it
             s.el = hit.el; s.mode = 'roll'; s.vx *= 0.5; s.vy = 0;
+            if (hit.el === ghostEl) { s.endRun = false; s.vx *= 0.3; }
           }
         }
       }
@@ -880,13 +894,32 @@
       if (l) return -1;
       return s.x > document.documentElement.clientWidth / 2 ? -1 : 1;
     }
+    function inEndZone() {
+      return ghostEl && scrollY + innerHeight >= document.documentElement.scrollHeight - innerHeight * 0.55;
+    }
     function wake() { if (!running) { running = true; last = 0; requestAnimationFrame(loop); } }
 
     // scroll down = a push along the ledge, toward its nearer edge
     var lastY = scrollY;
     addEventListener('scroll', function () {
       var d = scrollY - lastY; lastY = scrollY;
-      if (d <= 0 || !root.classList.contains('fm')) return;   // no anti-gravity
+      if (!root.classList.contains('fm')) return;
+      if (d <= 0) {                                           // no anti-gravity
+        if (s.mode === 'rest') sitOn(s.el, s.frac);           // just stay glued
+        return;
+      }
+      if (s.el === ghostEl && s.mode !== 'fall') return;      // home: the end of the page
+      // the closing stretch: nothing interrupts the fall any more -- it drops
+      // straight past everything and lands on the big DIMARIO at the very end
+      if (!s.endRun && inEndZone()) {
+        s.endRun = true;
+        var G0 = ledgeOf(ghostEl), gx = (G0.l + G0.r) / 2 + (Math.random() - .5) * (G0.r - G0.l) * 0.4;
+        var fallT = Math.sqrt(2 * Math.max(40, G0.y - s.y) / G);
+        s.vx = Math.max(-8, Math.min(8, (gx - s.x) / fallT));
+        s.gx = gx;
+        if (s.mode !== 'fall') { s.mode = 'fall'; s.vy = -2; s.w = (s.vx >= 0 ? 1 : -1) * 4; }
+        wake(); return;
+      }
       if (s.mode === 'fall') return;                          // already falling
       // its ledge has been scrolled up out of sight: nothing holds it in the
       // reader's world any more, so it simply drops back into view
@@ -902,7 +935,7 @@
 
     measureBox();
     s.dir = 1;
-    sitOn(document.querySelector('.brkt'), 0.8);
+    sitOn(document.querySelector('.hero-photo'), 0.78);
     // while resting, stay glued to the ledge as fonts/reveals/resizes shift
     // the layout under it
     setInterval(function () { if (s.mode === 'rest') { measureBox(); sitOn(s.el, s.frac); } }, 400);
