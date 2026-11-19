@@ -8,7 +8,7 @@
 <meta property="og:description" content="Builder &amp; Administrator, becoming a Software Engineer. I build tools that remove friction from offices.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0c0e10">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%230c0e10'/%3E%3Ctext x='50' y='68' font-family='Arial, sans-serif' font-weight='800' font-size='58' fill='%23f4f3ef' text-anchor='middle'%3ED%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%91%A8%F0%9F%8F%BD%E2%80%8D%F0%9F%92%BB%3C/text%3E%3C/svg%3E">
 <title>Dimario Wray</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -131,12 +131,14 @@
 
   /* reveal: a bigger rise + a touch of scale, with a slight overshoot so it
      reads as motion rather than a plain fade */
-  .rv { opacity: 0; transform: translateY(46px) scale(.96); transition: opacity .8s cubic-bezier(.16,.9,.2,1), transform .8s cubic-bezier(.16,.9,.2,1); will-change: transform, opacity; }
-  .rv.go { opacity: 1; transform: translateY(0) scale(1); }
-  .rv-stag > * { opacity: 0; transform: translateY(34px) scale(.97); transition: opacity .62s cubic-bezier(.16,.9,.2,1), transform .62s cubic-bezier(.16,.9,.2,1); will-change: transform, opacity; }
-  .rv-stag.go > * { opacity: 1; transform: translateY(0) scale(1); }
-  .rv-stag.go > *:nth-child(1){transition-delay:.02s}.rv-stag.go > *:nth-child(2){transition-delay:.08s}
-  .rv-stag.go > *:nth-child(3){transition-delay:.14s}.rv-stag.go > *:nth-child(4){transition-delay:.2s}.rv-stag.go > *:nth-child(5){transition-delay:.26s}
+  /* scroll reveals: a quiet fade with a short rise -- no scaling, no
+     flipping, no bounce. One long, soft ease-out curve everywhere. */
+  .rv { opacity: 0; transform: translateY(14px); transition: opacity .7s ease-out, transform .9s cubic-bezier(.22,1,.36,1); }
+  .rv.go { opacity: 1; transform: none; }
+  .rv-stag > * { opacity: 0; transform: translateY(14px); transition: opacity .7s ease-out, transform .9s cubic-bezier(.22,1,.36,1); }
+  .rv-stag.go > * { opacity: 1; transform: none; }
+  .rv-stag.go > *:nth-child(2){transition-delay:.06s}.rv-stag.go > *:nth-child(3){transition-delay:.12s}
+  .rv-stag.go > *:nth-child(4){transition-delay:.18s}.rv-stag.go > *:nth-child(5){transition-delay:.24s}
 
   section { padding-block: clamp(70px, 10vw, 120px); }
   .eyebrow { font-family: var(--font-mono); font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 14px; }
@@ -163,9 +165,7 @@
 
   /* projects: folder cards -- these flip up into place (like a folder being
      opened) instead of the plain rise-and-fade the rest of the page uses */
-  .proj-grid { margin-top: 44px; display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; perspective: 1400px; }
-  .proj-grid.rv-stag > * { opacity: 0; transform: translateY(0) scale(1) rotateX(-62deg); transform-origin: bottom center; transition: opacity .7s cubic-bezier(.22,.85,.25,1), transform .7s cubic-bezier(.22,.85,.25,1); }
-  .proj-grid.rv-stag.go > * { opacity: 1; transform: rotateX(0); }
+  .proj-grid { margin-top: 44px; display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; }
   @media (max-width: 980px) { .proj-grid { grid-template-columns: repeat(2,1fr); } }
   @media (max-width: 560px) { .proj-grid { grid-template-columns: 1fr; } }
   .folder { position: relative; padding-top: 56px; }
@@ -743,8 +743,6 @@
   var scrollbarEl = document.getElementById('scrollbar');
   var scrollbarFill = scrollbarEl ? scrollbarEl.querySelector('i') : null;
   var navEl = document.getElementById('nav');
-  var heroPhoto = document.querySelector('.hero-photo');
-  var heroTexture = document.querySelector('.hero .texture');
   var ticking = false;
   function onScroll() {
     ticking = false;
@@ -753,18 +751,6 @@
     if (scrollbarFill) {
       var max = (document.documentElement.scrollHeight - window.innerHeight) || 1;
       scrollbarFill.style.width = Math.min(100, Math.max(0, (y / max) * 100)) + '%';
-    }
-    // a light parallax drift on the hero while it's in view -- skipped when
-    // motion is off (so it never fights reduced-motion), and skipped below
-    // the 860px breakpoint where .hero-grid stacks to one column: there the
-    // photo sits directly above the lead paragraph, and drifting it down
-    // slides it straight over that text instead of past it
-    if (root.classList.contains('fm') && y < innerHeight && innerWidth > 860) {
-      if (heroPhoto) heroPhoto.style.transform = 'translateY(' + (y * 0.08) + 'px)';
-      if (heroTexture) heroTexture.style.transform = 'translateY(' + (y * 0.15) + 'px)';
-    } else {
-      if (heroPhoto) heroPhoto.style.transform = '';
-      if (heroTexture) heroTexture.style.transform = '';
     }
   }
   addEventListener('scroll', function () {
@@ -1311,7 +1297,7 @@
   if ('IntersectionObserver' in window && !reduced) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('go'); io.unobserve(e.target); } });
-    }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' });
+    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
     revealEls.forEach(function (el) { io.observe(el); });
   } else {
     revealEls.forEach(function (el) { el.classList.add('go'); });
