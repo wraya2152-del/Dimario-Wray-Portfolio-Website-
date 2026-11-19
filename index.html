@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Dimario Wray — builder and administrator. Tools that remove friction from offices.">
+<meta name="description" content="Dimario Wray — builder, administrator, and aspiring software engineer. Tools that remove friction from offices.">
 <meta property="og:title" content="Dimario Wray">
-<meta property="og:description" content="Builder &amp; Administrator. I build tools that remove friction from offices.">
+<meta property="og:description" content="Builder &amp; Administrator, becoming a Software Engineer. I build tools that remove friction from offices.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0c0e10">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%230c0e10'/%3E%3Ctext x='50' y='68' font-family='Arial, sans-serif' font-weight='800' font-size='58' fill='%23f4f3ef' text-anchor='middle'%3ED%3C/text%3E%3C/svg%3E">
@@ -89,6 +89,7 @@
   @media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; text-align: center; } }
   .hero-left h1 { font-size: clamp(1.9rem, 4.6vw, 2.9rem); }
   .hero-left .role { margin-top: 10px; font-size: clamp(1rem, 2vw, 1.25rem); color: var(--ink-soft); font-weight: 500; }
+  .hero-left .role em { font-style: normal; color: var(--ink); font-weight: 600; }
   .hero-left .now { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); font-family: var(--font-mono); font-size: .78rem; }
   @media (max-width: 860px) { .hero-left .now { border-top: none; border-bottom: 1px solid var(--line); padding-bottom: 18px; } }
   .hero-left .now .label { color: var(--ink-soft); text-transform: uppercase; letter-spacing: .1em; font-size: .68rem; margin-bottom: 8px; }
@@ -179,6 +180,9 @@
   .tl { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(190px, 1fr); gap: 0; min-width: 760px; }
   .tl .seg { position: relative; padding: 0 16px; }
   .tl .seg .node { width: 15px; height: 15px; border-radius: 50%; background: var(--bg); border: 2px solid var(--ink); position: relative; z-index: 2; }
+  .tl .seg .node.goal { background: var(--ink); border-style: dashed; }
+  .tl .seg .badge-goal { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .tl .seg .card.goal h4 { text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 4px; }
   .tl .seg:nth-child(odd) { padding-top: 0; }
   .tl .seg:nth-child(even) { padding-top: 70px; }
   .tl .seg .card { margin-top: 16px; }
@@ -351,7 +355,7 @@
       <div class="hero-grid">
         <div class="hero-left" id="about">
           <h1>Hi, I'm Dimario.</h1>
-          <div class="role">Builder &amp; Administrator.</div>
+          <div class="role">Builder &amp; Administrator, becoming a <em>Software Engineer</em>.</div>
           <div class="now">
             <div class="label">Currently</div>
             <b>Building tools for administrative teams</b>
@@ -360,7 +364,7 @@
         </div>
         <div class="hero-photo"><img src="assets/mario.jpg" alt="Portrait of Dimario Wray at his laptop"></div>
         <div class="hero-right">
-          <p class="lead">I build <b>tools that remove friction</b> from offices, turning <b>hours of manual work</b> into minutes.</p>
+          <p class="lead">I build <b>tools that remove friction</b> from offices, turning <b>hours of manual work</b> into minutes &mdash; admin work by trade, <b>software engineering</b> by where I'm headed.</p>
           <a class="btn" href="#work">Explore projects <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 10 10 2M4 2h6v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         </div>
       </div>
@@ -466,6 +470,17 @@
       <div class="tl-wrap rv">
         <div class="tl">
           <div class="tl-line"></div>
+          <div class="seg">
+            <div class="node goal"></div>
+            <div class="card goal">
+              <span class="badge badge-goal">Where this is going</span>
+              <div class="when">Next</div>
+              <h4>Software Engineer</h4>
+              <div class="org">Self-directed, alongside the degree</div>
+              <div class="loc">Leaning toward cloud &amp; security</div>
+              <p class="d">Admin and support roles are the bridge, not the destination &mdash; Setwork, Inventoria, LetterForge and Transcripta are the proof of work along the way.</p>
+            </div>
+          </div>
           <div class="seg">
             <div class="node"></div>
             <div class="card">
