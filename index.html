@@ -666,12 +666,12 @@
   "use strict";
   var root = document.documentElement;
 
-  // motion: on by default (this is a portfolio meant to be seen in motion),
-  // but a visitor's explicit "reduce motion" choice always wins if they've
-  // set it here before; .fm on <html> lifts the reduced-motion CSS kill-switch
-  var motionPref = null;
-  try { motionPref = localStorage.getItem('dw-motion'); } catch (e) {}
-  if (motionPref !== 'off') root.classList.add('fm');
+  // motion: ALWAYS on when the page loads. The pause button only pauses for
+  // the current visit -- it's never remembered, so a tap from some earlier
+  // visit (in Safari, Instagram's browser, wherever) can't leave the site
+  // frozen next time. .fm on <html> lifts the reduced-motion CSS kill-switch.
+  root.classList.add('fm');
+  try { localStorage.removeItem('dw-motion'); } catch (e) {} // clear any old saved "off"
   var reduced = !root.classList.contains('fm');
 
   // loading screen: shown for a brief minimum so it doesn't just flash,
@@ -727,7 +727,6 @@
   syncMotionBtn();
   motionBtn.addEventListener('click', function () {
     var on = root.classList.toggle('fm');
-    try { localStorage.setItem('dw-motion', on ? 'on' : 'off'); } catch (e) {}
     syncMotionBtn();
     // flipping mid-session doesn't retroactively replay reveals already
     // shown; it governs new motion (hover, future reveals, the loader next visit)
