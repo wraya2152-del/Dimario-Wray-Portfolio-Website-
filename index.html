@@ -76,7 +76,7 @@
   @media (prefers-reduced-motion: reduce) { :root:not(.fm) .scrollbar i { transition: none; } }
   /* physics box (see script): white + difference blend, so it reads black on
      light backgrounds and white on dark ones -- including the dark footer */
-  .gravity-box { position: absolute; top: 0; left: 0; width: clamp(10px, 1.4vw, 14px); height: clamp(18px, 2.6vw, 24px); background: #fff; mix-blend-mode: difference; border-radius: 2px; z-index: 4; pointer-events: none; will-change: transform; }
+  .gravity-box { position: absolute; top: 0; left: 0; width: clamp(11px, 1.4vw, 14px); height: clamp(20px, 2.6vw, 24px); background: #fff; mix-blend-mode: difference; border-radius: 2px; z-index: 4; pointer-events: none; will-change: transform; }
   @media (prefers-reduced-motion: reduce) { :root:not(.fm) .gravity-box { display: none; } }
   #nav .brand { font-weight: 500; margin-right: 10px; white-space: nowrap; }
   #nav .menu { position: relative; }
@@ -801,7 +801,17 @@
       if (r - l < 6 || h < 2) return null;
       return { el: el, y: top + scrollY, l: l + scrollX, r: r + scrollX };
     }
+    // ledges are in page coordinates, so they only change when the layout
+    // does -- measure them at most every 150ms instead of every physics step
+    // (on phones, re-measuring dozens of text runs 60x a second is what costs)
+    var ledgeCache = null, ledgeAt = 0;
     function allLedges() {
+      var now = performance.now();
+      if (ledgeCache && now - ledgeAt < 150) return ledgeCache;
+      ledgeAt = now; ledgeCache = measureLedges();
+      return ledgeCache;
+    }
+    function measureLedges() {
       var out = [];
       document.querySelectorAll(LEDGES).forEach(function (el) {
         // (things not revealed yet still count: they're solid, just not faded
@@ -951,11 +961,31 @@
       s.w = (Math.random() < .5 ? -1 : 1) * 360 / t;  // exactly one flip in the air
     }
 
-    var lastY = scrollY;
+    // phones: iOS rubber-bands past the top and bottom, which would read as
+    // phantom up/down scrolls -- only count the real, in-range position
+    function pageY() { return clamp(scrollY, 0, document.documentElement.scrollHeight - innerHeight); }
+    var lastY = pageY();
     addEventListener('scroll', function () {
-      var d = scrollY - lastY; lastY = scrollY;
+      var y = pageY(), d = y - lastY; lastY = y;
       if (!root.classList.contains('fm') || !d) return;
       if (s.mode === 'rest') glue();
+      var hh = halfH(s.a);
+
+      // a flick on a phone can throw the page a whole screen in a fraction
+      // of a second -- far faster than anything can fall. When the box ends
+      // up completely off-screen, close the gap while nobody can see it, so
+      // it's right there at the edge and falls / jumps into view at once.
+      if (d > 0 && s.y + hh < y - 30) {
+        if (s.el !== ghostEl) {
+          s.y = y - hh - 2; s.vy = clamp(Math.max(s.mode === 'fall' ? s.vy : 0, d), 3, 30); // keep pace with the flick
+          s.vx = 0; s.w = s.w || 4; s.mode = 'fall'; s.target = null; wake();
+        }
+        return;
+      }
+      if (d < 0 && s.y - hh > y + innerHeight + 30) {
+        s.y = y + innerHeight + hh + 12; s.mode = 'rest'; s.vx = 0; s.vy = 0;
+        jump(); wake(); return;
+      }
       if (s.mode === 'fall') return;           // mid-air: nothing to push against
 
       if (d < 0) { jump(); wake(); return; }
