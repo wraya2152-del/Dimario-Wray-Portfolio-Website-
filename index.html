@@ -904,10 +904,18 @@
     addEventListener('scroll', function () {
       var d = scrollY - lastY; lastY = scrollY;
       if (!root.classList.contains('fm')) return;
-      if (d <= 0) {                                           // no anti-gravity
-        if (s.mode === 'rest') sitOn(s.el, s.frac);           // just stay glued
-        return;
+      if (d < 0) {
+        // scrolling up is a flick from underneath, not anti-gravity: the box
+        // hops into the air, spins, and gravity brings it straight back down
+        // onto whatever is below. No double jumps -- it has to land first.
+        if (s.mode === 'fall') return;
+        var up = Math.min(Math.max(-d * 0.09, 3), 10);
+        s.mode = 'fall'; s.vy = -up;
+        s.vx = (Math.random() - .5) * 0.8;
+        s.w = (Math.random() < .5 ? -1 : 1) * (4 + up * 0.9);
+        wake(); return;
       }
+      if (d === 0) return;
       if (s.el === ghostEl && s.mode !== 'fall') return;      // home: the end of the page
       // the closing stretch: nothing interrupts the fall any more -- it drops
       // straight past everything and lands on the big DIMARIO at the very end
