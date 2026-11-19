@@ -74,6 +74,12 @@
   .scrollbar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 70; background: transparent; pointer-events: none; }
   .scrollbar i { display: block; height: 100%; width: 0%; background: var(--ink); transform-origin: left; transition: width .08s linear; }
   @media (prefers-reduced-motion: reduce) { :root:not(.fm) .scrollbar i { transition: none; } }
+  /* a small physics toy that tumbles down the page -- solid var(--ink) so it's
+     white on dark, black on light; fixed in the right-edge gutter, low enough
+     z-index to sit behind nav/modals, pointer-events off so it never blocks a
+     click; hidden outright when motion is off since it has no static pose */
+  .gravity-box { position: fixed; top: 0; right: max(7px, env(safe-area-inset-right, 0px)); width: clamp(9px, 1.5vw, 15px); height: clamp(20px, 3.4vw, 34px); background: var(--ink); border-radius: 2px; z-index: 4; pointer-events: none; will-change: transform; }
+  @media (prefers-reduced-motion: reduce) { :root:not(.fm) .gravity-box { display: none; } }
   #nav .brand { font-weight: 500; margin-right: 10px; white-space: nowrap; }
   #nav .menu { position: relative; }
   #nav .menu > button { display: flex; align-items: center; gap: 6px; background: var(--dark-surface); border: 1px solid var(--dark-line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
@@ -353,6 +359,7 @@
   </div>
 </nav>
 <div class="scrollbar" id="scrollbar"><i></i></div>
+<div class="gravity-box" aria-hidden="true"></div>
 
 <main>
   <section class="hero" id="top">
@@ -743,6 +750,40 @@
     if (!ticking) { ticking = true; requestAnimationFrame(onScroll); }
   }, { passive: true });
   onScroll();
+
+  // a little physics toy: a rectangle that falls under gravity and tumbles,
+  // with each scroll giving it a kick (down-scroll speeds the fall and spins
+  // it harder, up-scroll gives it a small bounce) -- it just free-falls on
+  // its own too, drag settles the spin, and it re-drops from the top once it
+  // exits the bottom. Off entirely when motion is off (see .gravity-box CSS).
+  var gravBox = document.querySelector('.gravity-box');
+  if (gravBox) {
+    var gState = { y: -60, vy: 0, rot: Math.random() * 50 - 25, vr: (Math.random() - .5) * 2.4 };
+    var gLastY = window.scrollY || document.documentElement.scrollTop;
+    var G = 0.12, DRAG = 0.994, ROT_DRAG = 0.982;
+    (function stepGravity() {
+      if (root.classList.contains('fm')) {
+        var sy = window.scrollY || document.documentElement.scrollTop;
+        var delta = sy - gLastY;
+        gLastY = sy;
+        gState.vy += delta * 0.18 + G;
+        gState.vr += delta * 0.07;
+        gState.vy *= DRAG;
+        gState.vr *= ROT_DRAG;
+        gState.y += gState.vy;
+        gState.rot += gState.vr;
+        if (gState.y > innerHeight + 50) {
+          gState.y = -60;
+          gState.vy = Math.random() * 1.2;
+          gState.vr = (Math.random() - .5) * 3.2;
+        } else if (gState.y < -120) {
+          gState.y = -60; gState.vy = 0;
+        }
+        gravBox.style.transform = 'translateY(' + gState.y.toFixed(1) + 'px) rotate(' + gState.rot.toFixed(1) + 'deg)';
+      }
+      requestAnimationFrame(stepGravity);
+    })();
+  }
 
   // nav dropdown
   var navmenu = document.getElementById('navmenu'), navbtn = document.getElementById('navbtn');
