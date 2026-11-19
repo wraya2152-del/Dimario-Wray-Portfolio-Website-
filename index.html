@@ -74,15 +74,9 @@
   .scrollbar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 70; background: transparent; pointer-events: none; }
   .scrollbar i { display: block; height: 100%; width: 0%; background: var(--ink); transform-origin: left; transition: width .08s linear; }
   @media (prefers-reduced-motion: reduce) { :root:not(.fm) .scrollbar i { transition: none; } }
-  /* a small box that rests on top of a highlighted word -- Newton's first law:
-     it sits still (glued to that word, moving with the page as you scroll
-     past it) until scrolling carries it far enough to be "nearer" the next
-     landmark word, at which point it tumbles over and lands there, at rest
-     again until the next push. Solid var(--ink): white on dark, black on
-     light. transform-origin is bottom-center so it pivots like it's tipping
-     off an edge. Positioned top:0;left:0 -- all placement is a translate(). */
-  .gravity-box { position: fixed; top: 0; left: 0; width: clamp(9px, 1.4vw, 14px); height: clamp(18px, 2.8vw, 26px); background: var(--ink); border-radius: 2px; z-index: 4; pointer-events: none; will-change: transform; transform-origin: 50% 100%; }
-  .gravity-box.tumbling { transition: transform .55s cubic-bezier(.34, 1.56, .64, 1); }
+  /* physics box (see script): white + difference blend, so it reads black on
+     light backgrounds and white on dark ones -- including the dark footer */
+  .gravity-box { position: absolute; top: 0; left: 0; width: clamp(10px, 1.4vw, 14px); height: clamp(18px, 2.6vw, 24px); background: #fff; mix-blend-mode: difference; border-radius: 2px; z-index: 4; pointer-events: none; will-change: transform; }
   @media (prefers-reduced-motion: reduce) { :root:not(.fm) .gravity-box { display: none; } }
   #nav .brand { font-weight: 500; margin-right: 10px; white-space: nowrap; }
   #nav .menu { position: relative; }
@@ -375,7 +369,7 @@
       <div class="hero-grid">
         <div class="hero-left" id="about">
           <h1>Hi, I'm Dimario.</h1>
-          <div class="role">Builder &amp; Administrator, becoming a <em class="landmark">Software Engineer</em>.</div>
+          <div class="role">Builder &amp; Administrator, becoming a <em>Software Engineer</em>.</div>
           <div class="now">
             <div class="label">Currently</div>
             <b>Building tools for administrative teams</b>
@@ -384,7 +378,7 @@
         </div>
         <div class="hero-photo"><img src="assets/mario.jpg" alt="Portrait of Dimario Wray at his laptop"></div>
         <div class="hero-right">
-          <p class="lead">I build <b>tools that remove friction</b> from offices, turning <b>hours of manual work</b> into minutes &mdash; admin work by trade, <b class="landmark">software engineering</b> by where I'm headed.</p>
+          <p class="lead">I build <b>tools that remove friction</b> from offices, turning <b>hours of manual work</b> into minutes &mdash; admin work by trade, <b>software engineering</b> by where I'm headed.</p>
           <a class="btn" href="#work">Explore projects <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 10 10 2M4 2h6v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         </div>
       </div>
@@ -409,7 +403,7 @@
   <section id="skills">
     <div class="wrap rv">
       <div class="eyebrow">01 &middot; Skills</div>
-      <h2>Two worlds, <em class="landmark">one toolkit</em>.</h2>
+      <h2>Two worlds, <em>one toolkit</em>.</h2>
       <div class="skill-cols rv-stag">
         <div class="skill-col">
           <h3>Admin &amp; Process</h3>
@@ -442,7 +436,7 @@
     <div class="wrap">
       <div class="rv">
         <div class="eyebrow">02 &middot; Projects</div>
-        <h2>Tools made for <em class="landmark">real offices</em>.</h2>
+        <h2>Tools made for <em>real offices</em>.</h2>
       </div>
       <div class="proj-grid rv-stag">
         <article class="folder">
@@ -485,7 +479,7 @@
     <div class="wrap">
       <div class="rv">
         <div class="eyebrow">03 &middot; Experience</div>
-        <h2>From the classroom to <em class="landmark">the console</em>.</h2>
+        <h2>From the classroom to <em>the console</em>.</h2>
       </div>
       <div class="tl-wrap rv">
         <div class="tl">
@@ -555,7 +549,7 @@
     <div class="wrap">
       <div class="rv">
         <div class="eyebrow">04 &middot; Contact</div>
-        <h2>Got a friction worth <em class="landmark">fixing</em>?</h2>
+        <h2>Got a friction worth <em>fixing</em>?</h2>
       </div>
       <div class="contact-grid">
         <div class="rv">
@@ -581,7 +575,7 @@
     <div class="wrap foot-top">
       <div class="foot-cols">
         <div class="brandcol">
-          <b class="landmark">Dimario.</b>
+          <b>Dimario.</b>
           <span>Builder &amp; Administrator.</span>
         </div>
         <div class="foot-nav">
@@ -755,77 +749,163 @@
   }, { passive: true });
   onScroll();
 
-  // a box that rests on top of a highlighted word -- Newton's first law: it
-  // stays put (glued to that word, so it rides along as the page scrolls)
-  // until scrolling pushes it far enough that the NEXT landmark word is
-  // nearer, at which point it tumbles over and lands there, at rest again
-  // until the next push. Off entirely when motion is off (.gravity-box CSS).
-  var gravBox = document.querySelector('.gravity-box');
-  var gMarks = Array.prototype.slice.call(document.querySelectorAll('.landmark'));
-  if (gravBox && gMarks.length) {
-    var gMarkY = [];
-    function gComputeMarks() {
-      var sy = window.scrollY || document.documentElement.scrollTop;
-      gMarkY = gMarks.map(function (el) { return sy + el.getBoundingClientRect().top; });
-    }
-    gComputeMarks();
-
-    var gIdx = 0, gRot = 0, gTumbling = false;
-
-    function gAnchor(el) {
-      var r = el.getBoundingClientRect();
-      var bw = gravBox.offsetWidth || 12, bh = gravBox.offsetHeight || 22;
-      return { x: r.left + r.width / 2 - bw / 2, y: r.top - bh + 5 };
-    }
-    function gPlace(el, rot, animate) {
-      gravBox.classList.toggle('tumbling', !!animate);
-      var p = gAnchor(el);
-      gravBox.style.transform = 'translate(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px) rotate(' + rot + 'deg)';
-    }
-    gPlace(gMarks[0], 0, false);
-
-    function gNearest() {
-      var ref = (window.scrollY || document.documentElement.scrollTop) + innerHeight * 0.4;
-      var best = 0, bestD = Infinity;
-      for (var i = 0; i < gMarkY.length; i++) {
-        var d = Math.abs(gMarkY[i] - ref);
-        if (d < bestD) { bestD = d; best = i; }
+  // a box that obeys real-ish physics. It sits at rest on a ledge (the top
+  // edge of a heading, the photo, a chip, a card...). Scrolling DOWN is the
+  // only force: it pushes the box along its ledge, tumbling, until it rolls
+  // off the edge and free-falls under gravity onto whatever ledge is below.
+  // Scrolling up does nothing -- gravity doesn't invert. It lives in page
+  // coordinates, so at rest it simply rides along with the page.
+  var gBox = document.querySelector('.gravity-box');
+  if (gBox) {
+    var LEDGES = '.brkt, .hero-left h1, .role, .hero-photo, .lead, .hero-right .btn, .eyebrow, section h2, .chip, .folder, .tl .seg .when, .field, .foot-see, .brandcol b, .foot-legal';
+    var TEXTY = '.brkt, h1, .role, .lead, .eyebrow, h2, .when, .foot-see, .brandcol b';
+    var rng = document.createRange();
+    var BW = 12, BH = 22, ROLL = 360 / 68;
+    function measureBox() { BW = gBox.offsetWidth || 12; BH = gBox.offsetHeight || 22; ROLL = 360 / (2 * (BW + BH)); }
+    function ledgeOf(el) {
+      if (!el) { // the page floor
+        var d = document.documentElement;
+        return { el: null, y: d.scrollHeight, l: 0, r: d.clientWidth };
       }
+      var r;
+      if (el.matches(TEXTY)) { rng.selectNodeContents(el); r = rng.getBoundingClientRect(); }
+      else r = el.getBoundingClientRect();
+      return { el: el, y: r.top + scrollY, l: r.left + scrollX, r: r.right + scrollX, w: r.width, h: r.height };
+    }
+    function allLedges() {
+      var out = [];
+      document.querySelectorAll(LEDGES).forEach(function (el) {
+        // skip things still waiting to reveal -- landing on an invisible
+        // element would look like the box is standing on air
+        if (el.closest('.rv:not(.go), .rv-stag:not(.go)')) return;
+        var L = ledgeOf(el);
+        if (L.w > 6 && L.h > 2) out.push(L);
+      });
+      out.push(ledgeOf(null));
+      return out;
+    }
+    var RAD = Math.PI / 180;
+    function halfH(a) { return Math.abs(BH / 2 * Math.cos(a * RAD)) + Math.abs(BW / 2 * Math.sin(a * RAD)); }
+    function halfW(a) { return Math.abs(BW / 2 * Math.cos(a * RAD)) + Math.abs(BH / 2 * Math.sin(a * RAD)); }
+
+    // x,y: centre in page px; vx,vy: px/frame; a: angle; w: spin deg/frame
+    var s = { x: 0, y: 0, vx: 0, vy: 0, a: 0, w: 0, mode: 'rest', el: null, frac: .9 };
+    var G = 0.55, FRICTION = 0.92;
+
+    function render() {
+      gBox.style.transform = 'translate(' + (s.x - BW / 2).toFixed(1) + 'px,' + (s.y - BH / 2).toFixed(1) + 'px) rotate(' + s.a.toFixed(1) + 'deg)';
+    }
+    function sitOn(el, frac) { // place at rest on a ledge, keeping its spot
+      var L = ledgeOf(el);
+      s.el = el; s.frac = frac;
+      s.x = L.l + frac * (L.r - L.l); s.y = L.y - halfH(s.a);
+      render();
+    }
+
+    var running = false, last = 0;
+    function loop(t) {
+      var dt = last ? Math.min((t - last) / 16.67, 3) : 1;
+      last = t;
+      var docW = document.documentElement.clientWidth;
+
+      if (s.mode === 'roll' || s.mode === 'settle') {
+        var L = ledgeOf(s.el);
+        if (s.mode === 'roll') {
+          s.x += s.vx * dt;
+          s.a += s.vx * dt * ROLL;          // tumbling: spin tied to distance
+          s.vx *= Math.pow(FRICTION, dt);
+          if (s.x > L.r || s.x < L.l) {     // past the edge: over it goes
+            s.mode = 'fall'; s.vy = 0; s.vx *= 0.6; s.w = s.vx * ROLL;
+          } else if (Math.abs(s.vx) < 0.12) {
+            s.mode = 'settle';              // out of momentum: tip onto a face
+          }
+        }
+        if (s.mode === 'settle') {
+          var target = Math.round(s.a / 90) * 90;
+          s.a += (target - s.a) * Math.min(1, 0.22 * dt);
+          if (Math.abs(target - s.a) < 0.4) {
+            s.a = target; s.mode = 'rest';
+            s.frac = (L.r - L.l) ? (s.x - L.l) / (L.r - L.l) : .5;
+          }
+        }
+        if (s.mode !== 'fall') s.y = L.y - halfH(s.a);
+      }
+
+      if (s.mode === 'fall') {
+        var prevBottom = s.y + halfH(s.a);
+        s.vy = Math.min(s.vy + G * dt, 24);
+        s.x += s.vx * dt; s.y += s.vy * dt; s.a += s.w * dt;
+        var hw = halfW(s.a);
+        if (s.x < hw) { s.x = hw; s.vx = Math.abs(s.vx) * 0.4; }
+        if (s.x > docW - hw) { s.x = docW - hw; s.vx = -Math.abs(s.vx) * 0.4; }
+        var bottom = s.y + halfH(s.a), hit = null;
+        // only land on things the reader can see: ledges that have already
+        // scrolled up past the top of the screen are behind the viewer, so
+        // the box drops past them into view instead of vanishing above
+        var minY = scrollY + innerHeight * 0.18;
+        allLedges().forEach(function (L) {
+          if ((L.el && L.y < minY)) return;
+          if (L.y >= prevBottom - 1 && L.y <= bottom && s.x >= L.l && s.x <= L.r && (!hit || L.y < hit.y)) hit = L;
+        });
+        if (hit) {
+          s.y = hit.y - halfH(s.a);
+          if (s.vy > 5) {                   // hard landing: a small bounce
+            s.vy = -s.vy * 0.28; s.vx *= 0.7; s.w *= 0.5;
+          } else {                          // land, then let friction stop it
+            s.el = hit.el; s.mode = 'roll'; s.vx *= 0.5; s.vy = 0;
+          }
+        }
+      }
+
+      render();
+      if (s.mode !== 'rest') requestAnimationFrame(loop);
+      else { running = false; last = 0; }
+    }
+    // which way to roll: off whichever edge has something visible to land on
+    // below it (nearer edge wins a tie); if neither does, roll toward the
+    // middle of the page, where the content is
+    function landingBelow(x, fromY) {
+      var minY = scrollY + innerHeight * 0.18, best = null;
+      allLedges().forEach(function (M) {
+        if (!M.el || M.y <= fromY + 4 || M.y < minY || M.y > fromY + innerHeight * 1.3) return;
+        if (x >= M.l && x <= M.r && (!best || M.y < best.y)) best = M;
+      });
       return best;
     }
-
-    var gTicking = false;
-    function gOnScroll() {
-      gTicking = false;
-      if (!root.classList.contains('fm')) return;
-      if (gTumbling) return; // let the current hop land before checking again
-      var ni = gNearest();
-      if (ni !== gIdx) {
-        // step one landmark at a time -- a big scroll chains several quick
-        // hops (via the catch-up call below) rather than teleporting straight
-        // to the final word, so it reads as rolling word to word
-        var dir = ni > gIdx ? 1 : -1;
-        gIdx += dir;
-        gRot += dir * 270; // always a multiple of 90 -- lands "flat" every time
-        gTumbling = true;
-        gPlace(gMarks[gIdx], gRot, true);
-        clearTimeout(gravBox._t);
-        gravBox._t = setTimeout(function () {
-          gTumbling = false;
-          gravBox.classList.remove('tumbling');
-          gOnScroll(); // catch up if the user scrolled past more than one mark
-        }, 560);
-      } else {
-        gPlace(gMarks[gIdx], gRot, false); // at rest: stay glued to its word
-      }
+    function chooseDir(L) {
+      var reach = halfW(s.a) + 24;
+      var r = landingBelow(L.r + reach, L.y), l = landingBelow(L.l - reach, L.y);
+      if (r && l) return (L.r - s.x) <= (s.x - L.l) ? 1 : -1;
+      if (r) return 1;
+      if (l) return -1;
+      return s.x > document.documentElement.clientWidth / 2 ? -1 : 1;
     }
+    function wake() { if (!running) { running = true; last = 0; requestAnimationFrame(loop); } }
+
+    // scroll down = a push along the ledge, toward its nearer edge
+    var lastY = scrollY;
     addEventListener('scroll', function () {
-      if (!gTicking) { gTicking = true; requestAnimationFrame(gOnScroll); }
+      var d = scrollY - lastY; lastY = scrollY;
+      if (d <= 0 || !root.classList.contains('fm')) return;   // no anti-gravity
+      if (s.mode === 'fall') return;                          // already falling
+      // its ledge has been scrolled up out of sight: nothing holds it in the
+      // reader's world any more, so it simply drops back into view
+      if (s.y < scrollY + innerHeight * 0.12) {
+        s.mode = 'fall'; s.vy = 0; s.vx = (s.dir || 1) * 0.8; s.w = (s.dir || 1) * 3;
+        wake(); return;
+      }
+      if (s.mode !== 'roll') { s.dir = chooseDir(ledgeOf(s.el)); s.mode = 'roll'; }
+      s.vx += s.dir * Math.min(d * 0.04, 1.8);
+      s.vx = Math.max(-7, Math.min(7, s.vx));
+      wake();
     }, { passive: true });
-    addEventListener('resize', function () {
-      gComputeMarks();
-      if (!gTumbling) gPlace(gMarks[gIdx], gRot, false);
-    });
+
+    measureBox();
+    s.dir = 1;
+    sitOn(document.querySelector('.brkt'), 0.8);
+    // while resting, stay glued to the ledge as fonts/reveals/resizes shift
+    // the layout under it
+    setInterval(function () { if (s.mode === 'rest') { measureBox(); sitOn(s.el, s.frac); } }, 400);
   }
 
   // nav dropdown
