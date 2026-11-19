@@ -617,7 +617,7 @@
       </div>
     </div>
     <div class="name-wrap">
-      <div class="ghost">DIMARIO</div>
+      <div class="ghost">AKA MARIO</div>
       <div class="joke">Thanks for scrolling all the way down here.</div>
     </div>
     <div class="foot-legal">&copy; 2026 Dimario Wray &middot; Built in Jamaica.</div>
@@ -777,8 +777,8 @@
   // Physics runs on a fixed 60Hz step so every arc is smooth and repeatable.
   var gBox = document.querySelector('.gravity-box');
   if (gBox) {
-    var LEDGES = '.foot-see, .brkt, .hero-left h1, .role, .now .label, .hero-photo, .lead, .hero-right .btn, .eyebrow, section h2, .skill-col h3, .skill-col .desc, .chip, .folder, .folder .meta, .tl .seg .badge, .tl .seg .when, .tl .seg h4, .field, #cform .btn, .brandcol b, .ghost, .foot-legal';
-    var TEXTY = '.brkt, h1, h2, h3, h4, .role, .lead, .eyebrow, .desc, .meta, .when, .label, .brandcol b, .ghost';
+    var LEDGES = '.brkt, .hero-left h1, .role, .now .label, .hero-photo, .lead, .hero-right .btn, .eyebrow, section h2, .skill-col h3, .skill-col .desc, .chip, .folder .tab, .folder .meta, .folder .desc, .tl .seg .badge, .tl .seg .when, .tl .seg h4, .field label, #cform .btn, .brandcol b, .foot-see h2, .ghost, .joke, .foot-legal';
+    var TEXTY = '.brkt, h1, h2, h3, h4, .role, .lead, .eyebrow, .desc, .meta, .when, .label, label, .brandcol b, .ghost, .joke, .foot-legal';
     var ghostEl = document.querySelector('.name-wrap .ghost');
     var rng = document.createRange();
     var BW = 12, BH = 22, ROLL = 360 / 68;
@@ -790,33 +790,85 @@
     // wide as its longest line, which would leave the box standing on air
     // beside a short first line; and a text box starts at the font's ascent
     // line, well above the capitals, so move it down onto the letters
-    function inkOffset(el) {
-      var w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), n;
-      while ((n = w.nextNode()) && !n.nodeValue.trim()) {}
-      var fs = parseFloat(getComputedStyle(n ? n.parentElement : el).fontSize) || 16;
-      return fs * (el.classList.contains('brkt') ? 0.36 : 0.18);
+    var gctx = document.createElement('canvas').getContext('2d'), gcache = {};
+    function glyph(ch, font) { // ink height above the baseline + font descent
+      var k = font + '|' + ch; if (gcache[k]) return gcache[k];
+      gctx.font = font; var m = gctx.measureText(ch);
+      var desc = m.fontBoundingBoxDescent != null ? m.fontBoundingBoxDescent : parseFloat(font.split(' ')[2]) * 0.22;
+      return (gcache[k] = { asc: m.actualBoundingBoxAscent || 0, desc: desc });
     }
-    function ledgeOf(el) {
-      if (!el) { var d = document.documentElement; return { el: null, y: d.scrollHeight, l: 0, r: d.clientWidth }; }
-      var top, l, r, h;
+    // the height of the surface right under the box: the tallest letter its
+    // footprint touches (it sits on the bumps, like a box on cobblestones)
+    function surf(L, x, hw) {
+      if (!L.prof) return L.y;
+      var best = Infinity, near = null, nd = Infinity;
+      for (var i = 0; i < L.prof.length; i++) {
+        var p = L.prof[i];
+        if (p.r > x - hw && p.l < x + hw) { if (p.top < best) best = p.top; }
+        else { var dd = Math.min(Math.abs(p.l - x), Math.abs(p.r - x)); if (dd < nd) { nd = dd; near = p; } }
+      }
+      return best < Infinity ? best : (near ? near.top : L.y);
+    }
+    // A ledge is a real visible surface, split into separate pieces wherever
+    // there's a visible gap (the space between "<" and "BUILDER", say) so the
+    // box can never come to rest on empty air between two things.
+    var segCache = new Map();
+    addEventListener('resize', function () { segCache.clear(); });
+    function segsOf(el) {
+      if (el) { var c = segCache.get(el), now = performance.now(); if (c && now - c.t < 500) return c.v; var v = measureSegs(el); segCache.set(el, { t: now, v: v }); return v; }
+      return measureSegs(el);
+    }
+    function measureSegs(el) {
+      var cw = document.documentElement.clientWidth, out = [], i;
+      if (!el) { var d = document.documentElement; return [{ el: null, y: d.scrollHeight, l: 0, r: cw }]; }
       if (el.matches(TEXTY)) {
-        rng.selectNodeContents(el);
-        var rs = rng.getClientRects(), i;
-        top = Infinity;
-        for (i = 0; i < rs.length; i++) if (rs[i].width > 1 && rs[i].top < top) top = rs[i].top;
-        l = Infinity; r = -Infinity;
-        for (i = 0; i < rs.length; i++) if (rs[i].width > 1 && rs[i].top < top + 4) { l = Math.min(l, rs[i].left); r = Math.max(r, rs[i].right); }
-        if (top === Infinity) return null;
-        h = 10; top += inkOffset(el);
+        // measure every letter on the first line: where it sits and how tall
+        // its actual ink is (a lowercase "o" is far shorter than a "T"), so
+        // the box rests ON the letters under it, never floating above them
+        var cs = getComputedStyle(el), chars = [], top = Infinity;
+        var tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), n, done = false;
+        while (!done && (n = tw.nextNode())) {
+          var pcs = getComputedStyle(n.parentElement), font = pcs.fontStyle + ' ' + pcs.fontWeight + ' ' + pcs.fontSize + ' ' + pcs.fontFamily;
+          var upper = pcs.textTransform === 'uppercase', txt = n.nodeValue;
+          for (i = 0; i < txt.length; i++) {
+            var ch = txt[i]; if (!ch.trim()) continue;
+            rng.setStart(n, i); rng.setEnd(n, i + 1);
+            var cr = rng.getBoundingClientRect(); if (cr.width < 0.5) continue;
+            if (top < Infinity && cr.top > top + 4) { done = true; break; } // past the first line: stop
+            var g = glyph(upper ? ch.toUpperCase() : ch, font);
+            chars.push({ l: cr.left, r: cr.right, top: cr.bottom - g.desc - g.asc, line: cr.top });
+            if (cr.top < top) top = cr.top;
+          }
+        }
+        if (top === Infinity) return out;
+        chars = chars.filter(function (c) { return c.line < top + 4; }); // first line only
+        chars.sort(function (a, b) { return a.l - b.l; });
+        var cur = null;
+        chars.forEach(function (c) {
+          var q = { l: c.l + scrollX, r: c.r + scrollX, top: c.top + scrollY };
+          if (cur && c.l - (cur.r - scrollX) <= 10) { cur.r = q.r; cur.prof.push(q); cur.y = Math.min(cur.y, q.top); }
+          else { if (cur) out.push(cur); cur = { el: el, y: q.top, l: q.l, r: q.r, prof: [q] }; }
+        });
+        if (cur) out.push(cur);
+        return out.filter(function (q) { q.l = Math.max(q.l, scrollX); q.r = Math.min(q.r, cw + scrollX); return q.r - q.l >= 6; });
       } else {
-        var b = el.getBoundingClientRect(); top = b.top; l = b.left; r = b.right; h = b.height;
+        var b = el.getBoundingClientRect();
+        if (b.height >= 2) out.push({ el: el, y: b.top + scrollY, l: b.left, r: b.right });
       }
       // only the part that's actually on the page (the big DIMARIO overflows
       // its clipped wrapper on phones)
-      var cw = document.documentElement.clientWidth;
-      l = Math.max(l, 0); r = Math.min(r, cw);
-      if (r - l < 6 || h < 2) return null;
-      return { el: el, y: top + scrollY, l: l + scrollX, r: r + scrollX };
+      return out.filter(function (q) {
+        q.l = Math.max(q.l, 0) + scrollX; q.r = Math.min(q.r, cw) + scrollX;
+        return q.r - q.l >= 6;
+      });
+    }
+    // the piece of an element's surface the box is on (or nearest to)
+    function ledgeOf(el, nearX) {
+      var ss = segsOf(el);
+      if (ss.length < 2) return ss[0] || null;
+      var x = nearX == null ? s.x : nearX, best = ss[0], bd = Infinity;
+      ss.forEach(function (q) { var dd = x < q.l ? q.l - x : x > q.r ? x - q.r : 0; if (dd < bd) { bd = dd; best = q; } });
+      return best;
     }
     // ledges are in page coordinates, so they only change when the layout
     // does -- measure them at most every 150ms instead of every physics step
@@ -833,9 +885,9 @@
       document.querySelectorAll(LEDGES).forEach(function (el) {
         // (things not revealed yet still count: they're solid, just not faded
         // in -- otherwise the box would drop straight through to the footer)
-        var L = ledgeOf(el); if (L) out.push(L);
+        segsOf(el).forEach(function (q) { out.push(q); });
       });
-      out.push(ledgeOf(null));
+      out.push(segsOf(null)[0]);
       return out;
     }
     function halfH(a) { return Math.abs(BH / 2 * Math.cos(a * RAD)) + Math.abs(BW / 2 * Math.sin(a * RAD)); }
@@ -851,7 +903,7 @@
     }
     function glue() { // at rest: ride along with the ledge (parallax, reveals, resizes)
       var L = ledgeOf(s.el); if (!L) return;
-      s.x = clamp(L.l + s.frac * (L.r - L.l), L.l + 1, L.r - 1); s.y = L.y - halfH(s.a);
+      s.x = clamp(L.l + s.frac * (L.r - L.l), L.l + 1, L.r - 1); s.y = surf(L, s.x, halfW(s.a) * 0.8) - halfH(s.a);
       render();
     }
 
@@ -864,7 +916,7 @@
         s.x += s.vx;
         s.a += s.vx * ROLL;                     // tumbling: turn tied to distance
         s.vx *= FRICTION;
-        s.y = L.y - halfH(s.a);
+        s.y = surf(L, s.x, halfW(s.a) * 0.8) - halfH(s.a);
         if (s.x > L.r || s.x < L.l) {           // over the edge: it keeps its
           s.mode = 'fall'; s.vy = 0;            // speed and its spin, and drops
           s.w = clamp(s.vx * ROLL * 0.6, -12, 12);
@@ -879,9 +931,9 @@
         if (!L) { s.mode = 'fall'; s.vy = 0; return; }
         var face = Math.round(s.a / 90) * 90;
         s.a += (face - s.a) * 0.22;
-        s.y = L.y - halfH(s.a);
+        s.y = surf(L, s.x, halfW(s.a) * 0.8) - halfH(s.a);
         if (Math.abs(face - s.a) < 0.3) {
-          s.a = face; s.y = L.y - halfH(s.a); s.mode = 'rest';
+          s.a = face; s.y = surf(L, s.x, halfW(s.a) * 0.8) - halfH(s.a); s.mode = 'rest';
           s.frac = L.r - L.l ? clamp((s.x - L.l) / (L.r - L.l), 0, 1) : .5;
           // the reader hit the bottom of the page and can't scroll any
           // further to push it -- so it makes its own way to the end, hopping
@@ -899,17 +951,20 @@
         if (s.x < wl) { s.x = wl; s.vx = Math.abs(s.vx) * 0.5; }
         if (s.x > wr) { s.x = wr; s.vx = -Math.abs(s.vx) * 0.5; }
         if (s.vy <= 0) return;                  // still rising: nothing to hit
-        var bottom = s.y + halfH(s.a), hit = null, viewTopY = scrollY + 2;
+        var bottom = s.y + halfH(s.a), hit = null, hitY = 0, viewTopY = scrollY + 2;
         allLedges().forEach(function (M) {
           // ledges already scrolled off the top of the screen are behind the
           // reader -- the box passes them and comes into view instead
           if (M.el && M.el !== s.target && M.y < viewTopY) return;
           if (s.endRun && M.el && M.el !== ghostEl && M.y < ledgeOf(ghostEl).y) return; // the final hop goes straight to the name
           var tol = M.el && M.el === s.target ? hw * 0.8 : 0;
-          if (M.y >= prevBottom - 0.5 && M.y <= bottom && s.x >= M.l - tol && s.x <= M.r + tol && (!hit || M.y < hit.y)) hit = M;
+          var my = surf(M, s.x, hw * 0.8);
+          if (my >= prevBottom - 0.5 && my <= bottom && s.x >= M.l - tol && s.x <= M.r + tol && (!hit || my < hitY)) { hit = M; hitY = my; }
         });
         if (!hit) return;
-        s.y = hit.y - halfH(s.a);
+        s.y = hitY - halfH(s.a);
+        // landed on something still waiting to fade in: the bump wakes it up
+        var hid = hit.el && hit.el.closest('.rv:not(.go), .rv-stag:not(.go)'); if (hid) hid.classList.add('go');
         if (s.vy > 5) {                         // hard landing: bounce
           s.vy = -s.vy * 0.3; s.vx *= 0.6; s.w *= 0.5;
         } else {                                // touch down, slide to a stop
