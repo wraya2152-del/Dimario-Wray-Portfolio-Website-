@@ -79,7 +79,7 @@
   #nav .iconbtn:hover { transform: translateY(-1px); background: var(--dark-line); }
   #nav .iconbtn:active { transform: translateY(0) scale(.92); }
   .scrollbar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 70; background: transparent; pointer-events: none; }
-  .scrollbar i { display: block; height: 100%; width: 0%; background: var(--ink); transform-origin: left; transition: width .08s linear; }
+  .scrollbar i { display: block; height: 100%; width: 100%; background: var(--ink); transform-origin: left; transform: scaleX(0); transition: transform .08s linear; will-change: transform; }
   @media (prefers-reduced-motion: reduce) { :root:not(.fm) .scrollbar i { transition: none; } }
   /* physics box (see script): solid ink -- black on light, white on dark --
      and the footer's light ink while it's over the dark footer. (It used a
@@ -736,10 +736,33 @@
   document.head.appendChild(vtCss);
   // a watercolour blot: a circle whose edge is pushed around by noise, grown
   // from (x, y) until it covers the whole screen
+  // The blot is drawn once onto a small canvas (a circle whose edge wobbles
+  // by a few random waves) and used as a plain image mask. A live SVG noise
+  // filter looked the same but had to be re-rendered at full-screen size on
+  // every frame, which phones couldn't keep up with.
+  var blotUrl = null;
+  function makeBlot() {
+    var S = 320, c = document.createElement('canvas'), g = c.getContext('2d');
+    c.width = c.height = S;
+    var waves = [], i, n = 7;
+    for (i = 0; i < n; i++) waves.push({ k: 2 + Math.floor(Math.random() * 9), a: (Math.random() * 0.05 + 0.015) / (1 + i * 0.35), ph: Math.random() * 6.283 });
+    g.fillStyle = '#fff'; g.shadowColor = '#fff'; g.shadowBlur = 6;
+    g.beginPath();
+    for (i = 0; i <= 360; i++) {
+      var th = i / 360 * 6.2832, r = 1;
+      waves.forEach(function (w) { r += w.a * Math.sin(w.k * th + w.ph); });
+      r *= S * 0.375;
+      var px = S / 2 + r * Math.cos(th), py = S / 2 + r * Math.sin(th);
+      if (i) g.lineTo(px, py); else g.moveTo(px, py);
+    }
+    g.closePath(); g.fill();
+    return 'url("' + c.toDataURL('image/png') + '")';
+  }
+  // ready ahead of time, and a fresh blot shape after every switch
+  setTimeout(function () { blotUrl = makeBlot(); }, 1500);
   function bleedIn(x, y) {
-    var seed = 1 + Math.floor(Math.random() * 98);
-    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><filter id="f" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="' + seed + '"/><feDisplacementMap in="SourceGraphic" scale="70"/><feGaussianBlur stdDeviation="2"/></filter><circle cx="200" cy="200" r="150" fill="white" filter="url(#f)"/></svg>';
-    var img = 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+    var img = blotUrl || makeBlot();
+    setTimeout(function () { blotUrl = makeBlot(); }, 1400);
     var far = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
     var end = far * 2 / 0.75 * 1.25, kf = [];
     for (var i = 0; i <= 30; i++) {
@@ -780,7 +803,7 @@
     if (navEl) navEl.classList.toggle('scrolled', y > 40);
     if (scrollbarFill) {
       var max = (document.documentElement.scrollHeight - window.innerHeight) || 1;
-      scrollbarFill.style.width = Math.min(100, Math.max(0, (y / max) * 100)) + '%';
+      scrollbarFill.style.transform = 'scaleX(' + Math.min(1, Math.max(0, y / max)).toFixed(4) + ')';
     }
   }
   addEventListener('scroll', function () {
@@ -839,8 +862,30 @@
     addEventListener('resize', function () { segCache.clear(); });
     function segsOf(el) {
       if (el && el._box) { var t = el._box.topSeg(); return t ? [t] : []; } // another box
-      if (el) { var c = segCache.get(el), now = performance.now(); if (c && now - c.t < 500) return c.v; var v = measureSegs(el); segCache.set(el, { t: now, v: v }); return v; }
+      if (el) {
+        // measuring letters forces the browser to lay the page out, which is
+        // what made scrolling stutter on phones. So a stale measurement is
+        // still used right away, and the fresh one is taken when the browser
+        // is idle -- only a never-measured element is measured on the spot.
+        var c = segCache.get(el), now = performance.now();
+        if (c) { if (now - c.t > 1500) idleMeasure(el); return c.v; }
+        var v = measureSegs(el); segCache.set(el, { t: now, v: v }); return v;
+      }
       return measureSegs(el);
+    }
+    var idleQ = new Set(), idleOn = false;
+    var onIdle = window.requestIdleCallback ? function (f) { requestIdleCallback(f, { timeout: 800 }); } : function (f) { setTimeout(f, 120); };
+    function idleMeasure(el) {
+      idleQ.add(el); if (idleOn) return; idleOn = true;
+      onIdle(function work(dl) {
+        var n = 0;
+        idleQ.forEach(function (e) {
+          if (n > 3 && dl && dl.timeRemaining && dl.timeRemaining() < 4) return;
+          segCache.set(e, { t: performance.now(), v: measureSegs(e) }); idleQ.delete(e); n++;
+        });
+        ledgeCache = null; // rebuild the combined list from the fresh pieces
+        if (idleQ.size) onIdle(work); else idleOn = false;
+      });
     }
     function measureSegs(el) {
       var cw = cwidth(), out = [], i;
@@ -892,7 +937,7 @@
     var ledgeCache = null, ledgeAt = 0;
     function allLedges() {
       var now = performance.now();
-      if (ledgeCache && now - ledgeAt < 150) return ledgeCache;
+      if (ledgeCache && now - ledgeAt < 1000) return ledgeCache;
       ledgeAt = now; ledgeCache = [];
       document.querySelectorAll(LEDGES).forEach(function (el) { segsOf(el).forEach(function (q) { ledgeCache.push(q); }); });
       ledgeCache.push(segsOf(null)[0]);
@@ -906,6 +951,9 @@
     function pageY() { return clamp(scrollY, 0, document.documentElement.scrollHeight - innerHeight); }
 
     var boxes = [];
+    var footTop = 0; // page y of the dark footer, refreshed now and then
+    function measureFoot() { if (footEl) footTop = footEl.getBoundingClientRect().top + scrollY; }
+    measureFoot(); setInterval(measureFoot, 1000); addEventListener('resize', measureFoot);
 
     function Box(el, idx, startEl, startFrac, kick) {
       var self = this, s = { x: 0, y: 0, vx: 0, vy: 0, a: 0, w: 0, mode: 'rest', el: null, frac: startFrac, dir: 1, target: null };
@@ -936,7 +984,7 @@
         others().forEach(function (b) { if (b.s.el === el && b.s.mode !== 'fall') { b.s.mode = 'fall'; b.s.vy = 0; b.s.vx = 0; b.s.target = null; b.wake(); } });
       }
       function render() {
-        if (footEl) el.classList.toggle('on-dark', s.y > footEl.getBoundingClientRect().top + scrollY);
+        if (footTop) el.classList.toggle('on-dark', s.y > footTop);
         el.style.transform = 'translate(' + (s.x - BW / 2).toFixed(2) + 'px,' + (s.y - BH / 2).toFixed(2) + 'px) rotate(' + s.a.toFixed(2) + 'deg)';
       }
       function glue() { // at rest: ride along with the ledge (parallax, reveals, resizes)
@@ -1160,6 +1208,16 @@
       boxes.push(new Box(el, i, document.querySelector(st[0]) || document.querySelector('.hero-photo'), st[1], st[2]));
     });
 
+    // a section finished fading in (it rises 14px as it does): re-measure the
+    // surfaces inside it so a box resting there settles onto the final spot
+    document.addEventListener('dw:revealed', function (e) {
+      var host = e.detail; if (!host || !host.querySelectorAll) return;
+      if (host.matches && host.matches(LEDGES)) idleMeasure(host);
+      host.querySelectorAll(LEDGES).forEach(idleMeasure);
+    });
+    // measure every surface once while the page is idle, so the first scroll
+    // never has to stop and measure
+    setTimeout(function () { document.querySelectorAll(LEDGES).forEach(idleMeasure); }, 600);
     var lastY = pageY();
     addEventListener('scroll', function () {
       var y = pageY(), d = y - lastY; lastY = y;
@@ -1326,7 +1384,7 @@
   var revealEls = document.querySelectorAll('.rv, .rv-stag');
   if ('IntersectionObserver' in window && !reduced) {
     var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('go'); io.unobserve(e.target); } });
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('go'); io.unobserve(e.target); var t = e.target; setTimeout(function () { document.dispatchEvent(new CustomEvent('dw:revealed', { detail: t })); }, 950); } });
     }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
     revealEls.forEach(function (el) { io.observe(el); });
   } else {
