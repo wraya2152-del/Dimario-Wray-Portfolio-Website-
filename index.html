@@ -41,6 +41,8 @@
   }
 
   * { box-sizing: border-box; }
+  .tl-line-seg { position: absolute; left: 0; right: 0; height: 2px; background: transparent; }
+  #cSend { margin-top: 4px; }
   /* the Artifact preview silently zeroes body's margin via its own page
      skeleton -- the standalone repo_index.html built for the live site does
      not get that for free, so without this explicit reset the browser's
@@ -531,7 +533,7 @@
             </div>
           </div>
           <div class="seg">
-            <div class="tl-line-seg" style="position:absolute;left:0;right:0;height:2px;background:transparent"></div>
+            <div class="tl-line-seg"></div>
             <div class="node"></div>
             <div class="card">
               <span class="badge">Ongoing</span>
@@ -588,7 +590,7 @@
           <div class="field"><label for="cName">Your name</label><input id="cName" name="name" type="text" placeholder="What should I call you?" required></div>
           <div class="field"><label for="cEmail">Your email</label><input id="cEmail" name="email" type="email" placeholder="you@company.com" required></div>
           <div class="field"><label for="cMsg">What needs fixing?</label><textarea id="cMsg" name="message" placeholder="Tell me about the task that eats your hours..." required></textarea></div>
-          <button class="btn" type="submit" id="cSend" style="margin-top:4px">Send message <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 10 10 2M4 2h6v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="btn" type="submit" id="cSend">Send message <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 10 10 2M4 2h6v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           <div class="cstatus" id="cStatus" role="status" aria-live="polite"></div>
         </form>
       </div>
