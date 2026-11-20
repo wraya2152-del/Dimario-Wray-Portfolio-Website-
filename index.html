@@ -8,7 +8,7 @@
 <meta property="og:description" content="Builder &amp; Administrator, becoming a Software Engineer. I build tools that remove friction from offices.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0c0e10">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%91%A8%F0%9F%8F%BD%E2%80%8D%F0%9F%92%BB%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E%F0%9F%91%A8%F0%9F%8F%BD%E2%80%8D%F0%9F%92%BB%3C/text%3E%3C/svg%3E">
 <title>Dimario Wray</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -41,11 +41,6 @@
   }
 
   * { box-sizing: border-box; }
-  /* light/dark switch: the old page stays still underneath while the new one
-     is painted over it (the bleed mask is animated from the script) */
-  ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
-  ::view-transition-old(root) { z-index: 1; }
-  ::view-transition-new(root) { z-index: 2; }
   /* the Artifact preview silently zeroes body's margin via its own page
      skeleton -- the standalone repo_index.html built for the live site does
      not get that for free, so without this explicit reset the browser's
@@ -222,13 +217,13 @@
   .tl .seg .node { width: 15px; height: 15px; border-radius: 50%; background: var(--bg); border: 2px solid var(--ink); position: relative; z-index: 2; }
   .tl .seg .node.goal { background: var(--ink); border-style: dashed; }
   .tl .seg .badge-goal { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-  .tl .seg .card.goal h4 { text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 4px; }
+  .tl .seg .card.goal h3 { text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 4px; }
   .tl .seg:nth-child(odd) { padding-top: 0; }
   .tl .seg:nth-child(even) { padding-top: 70px; }
   .tl .seg .card { margin-top: 16px; }
   .tl .seg .badge { display: inline-block; font-family: var(--font-mono); font-size: .66rem; text-transform: uppercase; letter-spacing: .06em; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line-2); margin-bottom: 8px; }
   .tl .seg .when { font-family: var(--font-mono); font-size: .74rem; color: var(--ink-soft); margin-bottom: 6px; }
-  .tl .seg h4 { font-size: 1.02rem; }
+  .tl .seg h3 { font-size: 1.02rem; }
   .tl .seg .org { font-size: .86rem; font-weight: 600; margin-top: 4px; }
   .tl .seg .loc { font-size: .8rem; color: var(--ink-soft); }
   .tl .seg p.d { margin-top: 8px; font-size: .84rem; color: var(--ink-soft); max-width: 24ch; }
@@ -518,7 +513,7 @@
             <div class="card goal">
               <span class="badge badge-goal">Where this is going</span>
               <div class="when">Next</div>
-              <h4>Software Engineer</h4>
+              <h3>Software Engineer</h3>
               <div class="org">Self-directed, alongside the degree</div>
               <div class="loc">Leaning toward cloud &amp; security</div>
               <p class="d">Admin and support roles are the bridge, not the destination &mdash; Setwork, Inventoria, LetterForge and Transcripta are the proof of work along the way.</p>
@@ -529,7 +524,7 @@
             <div class="card">
               <span class="badge">Current role</span>
               <div class="when">Aug 2026 &mdash; Present</div>
-              <h4>Administrative Staff</h4>
+              <h3>Administrative Staff</h3>
               <div class="org">York Castle High School</div>
               <div class="loc">St. Ann, Jamaica</div>
               <p class="d">Administrative support and process work, plus tool-building on the side.</p>
@@ -541,7 +536,7 @@
             <div class="card">
               <span class="badge">Ongoing</span>
               <div class="when">Started Sept 2026</div>
-              <h4>BSc Information Technology</h4>
+              <h3>BSc Information Technology</h3>
               <div class="org">University of the Commonwealth Caribbean</div>
               <div class="loc">Asynchronous</div>
               <p class="d">Studying part-time, asynchronously, alongside full-time work.</p>
@@ -552,7 +547,7 @@
             <div class="card">
               <span class="badge">Completing</span>
               <div class="when">&mdash; Dec 8, 2026</div>
-              <h4>NVQ-J Business Administration</h4>
+              <h3>NVQ-J Business Administration</h3>
               <div class="org">HEART/NSTA Trust</div>
               <div class="loc">Level 2 Certification</div>
               <p class="d">The administration foundation everything else builds on.</p>
@@ -563,7 +558,7 @@
             <div class="card">
               <span class="badge">2017 &ndash; 2023</span>
               <div class="when">CSEC</div>
-              <h4>York Castle High School</h4>
+              <h3>York Castle High School</h3>
               <div class="org">Secondary education</div>
               <div class="loc">St. Ann, Jamaica</div>
               <p class="d">Agricultural Science, EDPM, Principles of Business, English A and three more.</p>
@@ -640,7 +635,7 @@
   <div class="demo-panel" role="dialog" aria-modal="true" aria-labelledby="demoTitle">
     <button class="demo-close" type="button" data-close aria-label="Close">&#10005;</button>
     <div class="demo-head">
-      <h3 id="demoTitle"></h3>
+      <h3 id="demoTitle">Project demo</h3>
       <p class="demo-sub" id="demoMeta"></p>
     </div>
     <div class="demo-diagram" id="demoDiagram"></div>
@@ -731,6 +726,12 @@
     var vt = document.startViewTransition(function () { applyTheme(next); });
     vt.ready.then(function () { bleedIn(x, y); }).catch(function () {});
   });
+  // the view-transition layers: old page stays still underneath, new one gets
+  // painted over it. Added from here rather than the stylesheet so the CSS
+  // passes the W3C validator, which doesn't know these pseudo-elements yet.
+  var vtCss = document.createElement('style');
+  vtCss.textContent = '::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}::view-transition-old(root){z-index:1}::view-transition-new(root){z-index:2}';
+  document.head.appendChild(vtCss);
   // a watercolour blot: a circle whose edge is pushed around by noise, grown
   // from (x, y) until it covers the whole screen
   function bleedIn(x, y) {
@@ -798,7 +799,7 @@
   // through one another on the same ledge. Fixed 60Hz physics.
   var boxEls = document.querySelectorAll('.gravity-box');
   if (boxEls.length) {
-    var LEDGES = '.brkt, .hero-left h1, .role, .now .label, .hero-photo, .lead, .hero-right .btn, .eyebrow, section h2, .skill-col h3, .skill-col .desc, .chip, .folder .tab, .folder .meta, .folder .desc, .tl .seg .badge, .tl .seg .when, .tl .seg h4, .field label, #cform .btn, .brandcol b, .foot-see h2, .ghost, .joke, .foot-legal';
+    var LEDGES = '.brkt, .hero-left h1, .role, .now .label, .hero-photo, .lead, .hero-right .btn, .eyebrow, section h2, .skill-col h3, .skill-col .desc, .chip, .folder .tab, .folder .meta, .folder .desc, .tl .seg .badge, .tl .seg .when, .tl .seg h3, .field label, #cform .btn, .brandcol b, .foot-see h2, .ghost, .joke, .foot-legal';
     var TEXTY = '.brkt, h1, h2, h3, h4, .role, .lead, .eyebrow, .desc, .meta, .when, .label, label, .brandcol b, .ghost, .joke, .foot-legal';
     var ghostEl = document.querySelector('.name-wrap .ghost');
     var footEl = document.getElementById('footer');
