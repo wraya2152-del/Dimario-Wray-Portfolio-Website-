@@ -41,6 +41,11 @@
   }
 
   * { box-sizing: border-box; }
+  /* light/dark switch: the old page stays still underneath while the new one
+     is painted over it (the bleed mask is animated from the script) */
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+  ::view-transition-old(root) { z-index: 1; }
+  ::view-transition-new(root) { z-index: 2; }
   /* the Artifact preview silently zeroes body's margin via its own page
      skeleton -- the standalone repo_index.html built for the live site does
      not get that for free, so without this explicit reset the browser's
@@ -717,9 +722,31 @@
     var sysDark = matchMedia('(prefers-color-scheme: dark)').matches;
     var effectiveDark = cur ? cur === 'dark' : sysDark;
     var next = effectiveDark ? 'light' : 'dark';
-    applyTheme(next);
     try { localStorage.setItem('dw-theme', next); } catch (e) {}
+    // paint the new mode in: a watercolour blot spreads from the button over
+    // the old page. Needs the View Transitions API (current Chrome, Edge,
+    // Safari / iOS 18+); anywhere else, or with motion off, it just switches.
+    if (typeof document.startViewTransition !== 'function' || !root.classList.contains('fm')) { applyTheme(next); return; }
+    var r = themeBtn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+    var vt = document.startViewTransition(function () { applyTheme(next); });
+    vt.ready.then(function () { bleedIn(x, y); }).catch(function () {});
   });
+  // a watercolour blot: a circle whose edge is pushed around by noise, grown
+  // from (x, y) until it covers the whole screen
+  function bleedIn(x, y) {
+    var seed = 1 + Math.floor(Math.random() * 98);
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><filter id="f" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="' + seed + '"/><feDisplacementMap in="SourceGraphic" scale="70"/><feGaussianBlur stdDeviation="2"/></filter><circle cx="200" cy="200" r="150" fill="white" filter="url(#f)"/></svg>';
+    var img = 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+    var far = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    var end = far * 2 / 0.75 * 1.25, kf = [];
+    for (var i = 0; i <= 30; i++) {
+      var t = i / 30, e = 1 - Math.pow(1 - t, 3), sz = end * e;
+      var f = { maskImage: img, maskRepeat: 'no-repeat', maskSize: sz.toFixed(1) + 'px ' + sz.toFixed(1) + 'px', maskPosition: (x - sz / 2).toFixed(1) + 'px ' + (y - sz / 2).toFixed(1) + 'px' };
+      f.webkitMaskImage = f.maskImage; f.webkitMaskRepeat = f.maskRepeat; f.webkitMaskSize = f.maskSize; f.webkitMaskPosition = f.maskPosition;
+      kf.push(f);
+    }
+    root.animate(kf, { duration: 1150, easing: 'linear', pseudoElement: '::view-transition-new(root)' });
+  }
 
   // motion toggle -- flips .fm on <html>, which is what the CSS
   // reduced-motion override and the JS `reduced` flag above both key off
